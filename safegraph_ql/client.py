@@ -8,6 +8,25 @@ from gql.transport.requests import RequestsHTTPTransport
 class safeGraphError(Exception):
     pass
 
+__pattern__ = {
+    "safegraph_core": "safegraph_core { location_name top_category street_address city region postal_code latitude longitude iso_country_code }",
+    "safegraph_geometry": "safegraph_geometry{ location_name street_address city region postal_code latitude longitude polygon_wkt }",
+    "safegraph_patterns": """safegraph_patterns {
+                        date_range_start
+                        date_range_end
+                        median_dwell
+                        bucketed_dwell_times {
+                            key
+                            value
+                        }
+                        popularity_by_day {
+                            key
+                            value
+                        }
+                        visits_by_day
+                        poi_cbg
+                    }"""
+}
 class HTTP_Client:
     def __init__(self, apikey):
         self.url = 'https://api.safegraph.com/v1/graphql'
@@ -21,76 +40,97 @@ class HTTP_Client:
         )
         self.client = gql_Client(transport=self.transport, fetch_schema_from_transport=True)
 
-    def place(self, placekey, return_type="pandas"):
+    def __dataset__(self, dataset):
+        query = ""
+        data_type = []
+        if type(dataset) == str:
+            raise ValueError("*** Dataset has to be a list not str")
+        if dataset[0] == "*":
+            for i in __pattern__:
+                query += __pattern__[i]
+            data_type = ["safegraph_core", "safegraph_geometry", "safegraph_patterns"]
+        else:
+            for i in dataset:
+                try:
+                    query += __pattern__[i]
+                    data_type.append(i)
+                except KeyError:
+                    raise KeyError(f"*** {i} is not an available dataset")
+        if query == "":
+            raise ValueError("*** Bad dataset assignment, check your paramaters")
+        return query, data_type
+
+    def place(self, placekey, dataset=["*"], return_type="pandas", columns=["*"]):
         """
             :param str placekey:            Unique Placekey ID
-            :param str return_type:         Desired return type ether "pandas" or "dict"
-            :return:                        The informations of given placekey
+            :param str return_type:         Desired return type ether "pandas" or "list"
+            :param list dataset:            ["*"] for all or any/all of three in a list: ["safegraph_core", "safegraph_geometry", "safegraph_patterns"]
+            :param list columns:            ["*"] for all or desired column in dataframe
+            :return:                        The data of given placekey in return_type
             :rtype:                         pandas.DataFrame or dict
-            XXX EXAMPLE 
-                :raises ValueError:         if placekey is not found in database
         """
-        query = gql(
-            """query($placekey: Placekey!) {
-                place(placekey: $placekey) {
-                        placekey 
-                    safegraph_core {
-                        location_name
-                        top_category
-                        street_address
-                        city
-                        region
-                        latitude
-                        longitude
-                        iso_country_code
-                    }
-                }
-            }"""
-        ) 
         params = {"placekey": placekey}
+        dataset, data_type = self.__dataset__(dataset)
+        query = gql(
+            f"""query($placekey: Placekey!) {{
+                place(placekey: $placekey) {{
+                        placekey 
+                    {dataset}
+                }}
+            }}"""
+        ) 
         result = self.client.execute(query, variable_values=params)
-        if return_type == "pandas":
-            df = pd.DataFrame.from_dict(result['place']['safegraph_core'], orient="index")
-            return df
-        if return_type == "dict":
-            return result['place']['safegraph_core']
-        else:
-            raise safeGraphError("return_type does not exist")
+        data_frame = []
+        dict_ = {}
+        for j in data_type:
+            dict_.update(result['place'][j])
+        data_frame.append(dict_)
 
-    def places(self, placekeys, return_type="pandas"):
+        if return_type == "pandas":
+            df = pd.DataFrame.from_dict(data_frame)
+            return df
+        if return_type == "list":
+            return data_frame
+        else:
+            raise safeGraphError(f'return_type "{return_type}" does not exist')
+
+    def places(self, placekeys, dataset=["*"], return_type="pandas"):
         """
             :param list placekeys:          Unique Placekey ID inside an array
-            :param str return_type:         Desired return type ether "pandas" or "dict"
-            :return:                        The informations of given placekeys
+            :param str return_type:         Desired return type ether "pandas" or "list"
+            :param list dataset:            ["*"] for all or any/all of three in a list: ["safegraph_core", "safegraph_geometry", "safegraph_patterns"]
+            :return:                        The data of given placekeys in return_type
             :rtype:                         pandas.DataFrame or dict
         """
-        query = gql(
-            """query($placekeys: [Placekey!]) {
-                places(placekeys: $placekeys) {
-                    placekey
-                safegraph_core {
-                    location_name
-                    top_category
-                    street_address
-                    city
-                    region
-                    latitude
-                    longitude
-                    iso_country_code
-                }
-              }
-            }"""
-        ) 
         params = {"placekeys": placekeys}
+        dataset, data_type = self.__dataset__(dataset)
+        query = gql(
+            f"""query($placekeys: [Placekey!]) {{
+                places(placekeys: $placekeys) {{
+                    placekey
+                {dataset}
+                }}
+            }}"""
+        ) 
         result = self.client.execute(query, variable_values=params)
-        result = [i['safegraph_core'] for i in result['places']]
+        data_frame = []
+        for place in result['places']:
+            dict_ = {}
+            for j in data_type:
+                dict_.update(place[j])
+            data_frame.append(dict_)
+
+
+        #result = [{**i['safegraph_core'], **i['safegraph_geometry'], **i['safegraph_patterns']} for i in result['places']]
+
+
         if return_type == "pandas":
-            df = pd.DataFrame(result)
+            df = pd.DataFrame(data_frame)
             return df
-        if return_type == "dict":
-            return result
+        if return_type == "list":
+            return data_frame
         else:
-            raise safeGraphError("return_type does not exist")
+            raise safeGraphError(f'return_type "{return_type}" does not exist')
 
     def place_by_name(self, location_name, street_address, city, region, iso_country_code, return_type="pandas"):
         """
@@ -99,8 +139,8 @@ class HTTP_Client:
             :param str city:                city of the desidred place
             :param str region:              region of the desidred place
             :param str iso_country_code:    iso_country_code of the desidred place
-            :param str return_type:         Desired return type ether "pandas" or "dict"
-            :return:                        The informations of given placekey
+            :param str return_type:         Desired return type ether "pandas" or "list"
+            :return:                        The data of given placekey in return_type
             :rtype:                         pandas.DataFrame or dict
             XXX EXAMPLE 
                 :raises ValueError:         if placekey is not found in database
@@ -129,10 +169,10 @@ class HTTP_Client:
         if return_type == "pandas":
             df = pd.DataFrame.from_dict(result['place']['safegraph_core'], orient="index")
             return df
-        if return_type == "dict":
+        if return_type == "list":
             return result
         else:
-            raise safeGraphError("return_type does not exist")
+            raise safeGraphError(f'return_type "{return_type}" does not exist')
 
 # print("\n\tSINGLE PULL FROM PLACEKEY\n")
 # print(get_place_by_placekey(query_pk = "222-222@5qw-shj-7qz"))

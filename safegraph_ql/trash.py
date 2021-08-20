@@ -60,3 +60,49 @@ query = f"""query {{
 # json_data = json.loads(response.text)
 # df_data = json_data['data']['place']['safegraph_core']
 # df = pd.DataFrame.from_dict(df_data, orient="index")
+
+
+        query = gql(
+            """query($placekeys: [Placekey!]) {
+                places(placekeys: $placekeys) {
+                    placekey
+                safegraph_core {
+                    location_name
+                    top_category
+                    street_address
+                    city
+                    region
+                    postal_code
+                    latitude
+                    longitude
+                    iso_country_code
+                }
+                safegraph_geometry{
+                    location_name
+                    top_category
+                    street_address
+                    city
+                    region
+                    postal_code
+                    latitude
+                    longitude
+                    polygon_wkt
+                }
+                safegraph_patterns {
+                    date_range_start
+                    date_range_end
+                    median_dwell
+                    bucketed_dwell_times {
+                        key
+                        value
+                    }
+                    popularity_by_day {
+                        key
+                        value
+                    }
+                    visits_by_day
+                    poi_cbg
+                }
+              }
+            }"""
+        ) 
