@@ -8,25 +8,6 @@ from gql.transport.requests import RequestsHTTPTransport
 class safeGraphError(Exception):
     pass
 
-__pattern__ = {
-    "safegraph_core": "safegraph_core { location_name top_category street_address city region postal_code latitude longitude iso_country_code }",
-    "safegraph_geometry": "safegraph_geometry{ location_name street_address city region postal_code latitude longitude polygon_wkt }",
-    "safegraph_patterns": """safegraph_patterns {
-                        date_range_start
-                        date_range_end
-                        median_dwell
-                        bucketed_dwell_times {
-                            key
-                            value
-                        }
-                        popularity_by_day {
-                            key
-                            value
-                        }
-                        visits_by_day
-                        poi_cbg
-                    }"""
-}
 class HTTP_Client:
     def __init__(self, apikey):
         self.url = 'https://api.safegraph.com/v1/graphql'
@@ -39,38 +20,84 @@ class HTTP_Client:
             headers=self.headers,
         )
         self.client = gql_Client(transport=self.transport, fetch_schema_from_transport=True)
+        self.dataset = ["safegraph_core", "safegraph_geometry", "safegraph_patterns"]
+        self.__pattern__ = {
+            "safegraph_core": { 
+                "__header__": "safegraph_core {",
+                "location_name": "location_name", 
+                "top_category": "top_category", 
+                "street_address": "street_address", 
+                "city": "city", 
+                "region": "region", 
+                "postal_code": "postal_code", 
+                "latitude": "latitude", 
+                "longitude": "longitude", 
+                "iso_country_code": "iso_country_code", 
+                "__footer__": "}"
+            },
+            "safegraph_geometry": {
+                "__header__": "safegraph_geometry {",
+                "location_name": "location_name", 
+                "street_address": "street_address", 
+                "city": "city", 
+                "region": "region", 
+                "postal_code": "postal_code", 
+                "latitude": "latitude", 
+                "longitude": "longitude", 
+                "polygon_wkt": "polygon_wkt", 
+                "__footer__": "}"
+            },
+            "safegraph_patterns": {
+                "__header__": "safegraph_patterns {",
+                "date_range_start": "date_range_start",
+                "date_range_end": "date_range_end",
+                "median_dwell": "median_dwell",
+                "bucketed_dwell_times": "bucketed_dwell_times { key value }",
+                "popularity_by_day": "popularity_by_day { key value }",
+                "visits_by_day": "visits_by_day",
+                "poi_cbg": "poi_cbg",
+                "__footer__": "}"
+            }
+        }
 
-    def __dataset__(self, dataset):
+    def __dataset__(self, columns):
         query = ""
         data_type = []
-        if type(dataset) == str:
-            raise ValueError("*** Dataset has to be a list not str")
-        if dataset[0] == "*":
-            for i in __pattern__:
-                query += __pattern__[i]
-            data_type = ["safegraph_core", "safegraph_geometry", "safegraph_patterns"]
+        if type(columns) != list:
+            raise ValueError("*** columns argumnet has to be a list")
+        if columns[0] == "*":
+            for i in self.__pattern__:
+                for j in self.__pattern__[i]:
+                    query += self.__pattern__[i][j] + " "
+            data_type = self.dataset
         else:
-            for i in dataset:
-                try:
-                    query += __pattern__[i]
+            for i in self.dataset:
+                if columns == "*":
+                    for j in self.__pattern__[i]:
+                        query += self.__pattern__[i][j] + " "
                     data_type.append(i)
-                except KeyError:
-                    raise KeyError(f"*** {i} is not an available dataset")
+                else:
+                    available_columns = [j for j in self.__pattern__[i] if j in columns]
+                    if len(available_columns) > 0:
+                        data_type.append(i)
+                        query += self.__pattern__[i]["__header__"] + " "
+                        for j in available_columns:
+                            query += self.__pattern__[i][j] + " "
+                        query += self.__pattern__[i]["__footer__"] + " "
         if query == "":
-            raise ValueError("*** Bad dataset assignment, check your paramaters")
+            raise ValueError(f"*** Bad column assignment, check your paramaters: {columns}")
         return query, data_type
 
-    def place(self, placekey, dataset=["*"], return_type="pandas", columns=["*"]):
+    def place(self, placekey, return_type="pandas", columns=["*"]):
         """
             :param str placekey:            Unique Placekey ID
             :param str return_type:         Desired return type ether "pandas" or "list"
-            :param list dataset:            ["*"] for all or any/all of three in a list: ["safegraph_core", "safegraph_geometry", "safegraph_patterns"]
             :param list columns:            ["*"] for all or desired column in dataframe
             :return:                        The data of given placekey in return_type
             :rtype:                         pandas.DataFrame or dict
         """
         params = {"placekey": placekey}
-        dataset, data_type = self.__dataset__(dataset)
+        dataset, data_type = self.__dataset__(columns)
         query = gql(
             f"""query($placekey: Placekey!) {{
                 place(placekey: $placekey) {{
@@ -94,16 +121,16 @@ class HTTP_Client:
         else:
             raise safeGraphError(f'return_type "{return_type}" does not exist')
 
-    def places(self, placekeys, dataset=["*"], return_type="pandas"):
+    def places(self, placekeys, return_type="pandas", columns=["*"]):
         """
             :param list placekeys:          Unique Placekey ID inside an array
             :param str return_type:         Desired return type ether "pandas" or "list"
-            :param list dataset:            ["*"] for all or any/all of three in a list: ["safegraph_core", "safegraph_geometry", "safegraph_patterns"]
+            :param list columns:            ["*"] for all or desired column in dataframe
             :return:                        The data of given placekeys in return_type
             :rtype:                         pandas.DataFrame or dict
         """
         params = {"placekeys": placekeys}
-        dataset, data_type = self.__dataset__(dataset)
+        dataset, data_type = self.__dataset__(columns)
         query = gql(
             f"""query($placekeys: [Placekey!]) {{
                 places(placekeys: $placekeys) {{
@@ -119,11 +146,7 @@ class HTTP_Client:
             for j in data_type:
                 dict_.update(place[j])
             data_frame.append(dict_)
-
-
-        #result = [{**i['safegraph_core'], **i['safegraph_geometry'], **i['safegraph_patterns']} for i in result['places']]
-
-
+            
         if return_type == "pandas":
             df = pd.DataFrame(data_frame)
             return df
