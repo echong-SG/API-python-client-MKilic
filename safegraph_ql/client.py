@@ -9,14 +9,15 @@ class safeGraphError(Exception):
     pass
 
 class HTTP_Client:
-    def __init__(self, apikey):
+    def __init__(self, apikey, max_tries=3):
+        self.df = pd.DataFrame()
         self.url = 'https://api.safegraph.com/v1/graphql'
-        self.apikey = apikey # "x8TUW4IV3hYC1L4Xav56nChUWwtBisRY"
+        self.apikey = apikey
         self.headers = {'Content-Type': 'application/json', 'apikey': apikey}
         self.transport = RequestsHTTPTransport(
             url=self.url, 
             verify=True, 
-            retries=3,
+            retries=max_tries,
             headers=self.headers,
         )
         self.client = gql_Client(transport=self.transport, fetch_schema_from_transport=True)
@@ -164,6 +165,14 @@ class HTTP_Client:
     def __str__(self):
         return f"api url: {self.url} | apikey: {self.apikey}"
 
+    def save(self, path="results.csv"):
+        """
+            :param str path:                location of csv file e.g: "results.csv"
+            saves last pulled datafame as a csv file to given location
+            if path is not given saves to current location as results.csv
+        """
+        self.df.to_csv(path)
+
     def __dataset__(self, columns):
         query = ""
         data_type = []
@@ -219,8 +228,9 @@ class HTTP_Client:
 
         if return_type == "pandas":
             df = pd.DataFrame.from_dict(data_frame)
+            self.df = df
             return df
-        if return_type == "list":
+        elif return_type == "list":
             return data_frame
         else:
             raise safeGraphError(f'return_type "{return_type}" does not exist')
@@ -253,8 +263,9 @@ class HTTP_Client:
 
         if return_type == "pandas":
             df = pd.DataFrame(data_frame)
+            self.df = df
             return df
-        if return_type == "list":
+        elif return_type == "list":
             return data_frame
         else:
             raise safeGraphError(f'return_type "{return_type}" does not exist')
@@ -295,6 +306,7 @@ class HTTP_Client:
         result = self.client.execute(query)
         if return_type == "pandas":
             df = pd.DataFrame.from_dict(result['place']['safegraph_core'], orient="index")
+            self.df = df
             return df
         if return_type == "list":
             return result
