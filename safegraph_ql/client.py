@@ -161,6 +161,9 @@ class HTTP_Client:
             }
         }
 
+    def __str__(self):
+        return f"api url: {self.url} | apikey: {self.apikey}"
+
     def __dataset__(self, columns):
         query = ""
         data_type = []
