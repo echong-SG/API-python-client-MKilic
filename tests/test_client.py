@@ -3,7 +3,7 @@ import pandas as pd
 import random
 
 df_type = type(pd.DataFrame())
-apiKey = "123"
+apiKey = open("apiKey.txt").readlines()[0]
 safe_graph = client.HTTP_Client(apiKey)
 
 arr = []
@@ -19,45 +19,16 @@ placekeys = [
         "222-223@65y-rxx-djv", # (Walmart in Albany, NY)
         ] 
 
-def test_place():
-    placekey = random.choice(placekeys)
-    assert type(safe_graph.place(placekey, columns=[random.choice(arr) for i in range(random.randint(1, len(arr)))], return_type="pandas")) == df_type
-    assert type(safe_graph.place(placekey, columns=[random.choice(arr) for i in range(random.randint(1, len(arr)))], return_type="list")) == list
-
-    # assert type(safe_graph.place(placekey, columns=[random.choice(arr) for i in range(random.randint(1, len(arr)))], return_type="pandas")) == df_type
-    # assert type(safe_graph.place(placekey, columns=[random.choice(arr) for i in range(random.randint(1, len(arr)))], return_type="list")) == list
-    # assert type(safe_graph.place(placekey, columns=[random.choice(arr) for i in range(random.randint(1, len(arr)))], return_type="pandas")) == df_type
-    # assert type(safe_graph.place(placekey, columns=[random.choice(arr) for i in range(random.randint(1, len(arr)))], return_type="list")) == list
-    # assert type(safe_graph.place(placekey, columns=[random.choice(arr) for i in range(random.randint(1, len(arr)))], return_type="pandas")) == df_type
-    # assert type(safe_graph.place(placekey, columns=[random.choice(arr) for i in range(random.randint(1, len(arr)))], return_type="list")) == list
-
-    # assert type(safe_graph.place(placekey, columns=[random.choice(arr) for i in range(random.randint(1, len(arr)))], return_type="pandas")) == df_type
-    # assert type(safe_graph.place(placekey, columns=[random.choice(arr) for i in range(random.randint(1, len(arr)))], return_type="list")) == list
-
-    # assert type(safe_graph.place(placekey, columns=[random.choice(arr) for i in range(random.randint(1, len(arr)))], return_type="pandas")) == df_type
-    # assert type(safe_graph.place(placekey, columns=[random.choice(arr) for i in range(random.randint(1, len(arr)))], return_type="list")) == list
-    
-    # assert type(safe_graph.place(placekey, columns=[random.choice(arr) for i in range(random.randint(1, len(arr)))], return_type="list")) == list
-
 def test_places():  
     assert type(safe_graph.places(placekeys, columns=[random.choice(arr) for i in range(random.randint(1, len(arr)))], return_type="pandas")) == df_type
     assert type(safe_graph.places(placekeys, columns=[random.choice(arr) for i in range(random.randint(1, len(arr)))], return_type="list")) == list
+    assert type(safe_graph.places(placekeys, columns=[random.choice(arr) for i in range(random.randint(1, len(arr)))], return_type="pandas")) == df_type
+    assert type(safe_graph.places(placekeys, columns=[random.choice(arr) for i in range(random.randint(1, len(arr)))], return_type="list")) == list
+    assert type(safe_graph.places(placekeys, columns=[random.choice(arr) for i in range(random.randint(1, len(arr)))], return_type="pandas")) == df_type
+    assert type(safe_graph.places(placekeys, columns=[random.choice(arr) for i in range(random.randint(1, len(arr)))], return_type="list")) == list
+    assert type(safe_graph.places(placekeys, columns=[random.choice(arr) for i in range(random.randint(1, len(arr)))], return_type="pandas")) == df_type
+    assert type(safe_graph.places(placekeys, columns=[random.choice(arr) for i in range(random.randint(1, len(arr)))], return_type="list")) == list
     
-    # assert type(safe_graph.places(placekeys, columns=[random.choice(arr) for i in range(random.randint(1, len(arr)))], return_type="pandas")) == df_type
-    # assert type(safe_graph.places(placekeys, columns=[random.choice(arr) for i in range(random.randint(1, len(arr)))], return_type="list")) == list
-    # assert type(safe_graph.places(placekeys, columns=[random.choice(arr) for i in range(random.randint(1, len(arr)))], return_type="pandas")) == df_type
-    # assert type(safe_graph.places(placekeys, columns=[random.choice(arr) for i in range(random.randint(1, len(arr)))], return_type="list")) == list
-    # assert type(safe_graph.places(placekeys, columns=[random.choice(arr) for i in range(random.randint(1, len(arr)))], return_type="pandas")) == df_type
-    # assert type(safe_graph.places(placekeys, columns=[random.choice(arr) for i in range(random.randint(1, len(arr)))], return_type="list")) == list
-
-    # assert type(safe_graph.places(placekeys, columns=[random.choice(arr) for i in range(random.randint(1, len(arr)))], return_type="pandas")) == df_type
-    # assert type(safe_graph.places(placekeys, columns=[random.choice(arr) for i in range(random.randint(1, len(arr)))], return_type="list")) == list
-
-    # assert type(safe_graph.places(placekeys, columns=[random.choice(arr) for i in range(random.randint(1, len(arr)))], return_type="pandas")) == df_type
-    # assert type(safe_graph.places(placekeys, columns=[random.choice(arr) for i in range(random.randint(1, len(arr)))], return_type="list")) == list
-    
-    # assert type(safe_graph.places(placekeys, columns=[random.choice(arr) for i in range(random.randint(1, len(arr)))], return_type="list")) == list
-
 # def test_jsonPairDataFrame():  
 #     df = safe_graph.places(placekeys, columns=[random.choice(arr) for i in range(random.randint(1, len(arr)))], return_type="pandas")
 #     # pure_data = df[["device_type", "placekey"]].dropna().values.tolist()

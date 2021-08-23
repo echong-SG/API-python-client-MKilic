@@ -223,48 +223,10 @@ class HTTP_Client:
         self.df = pd.DataFrame.from_dict(data_frame)
         self.__change_value_types_pandas()
 
-    def place(self, placekey, return_type="pandas", columns=["*"]):
-        """
-            :param str placekey:            Unique Placekey ID
-            :param str return_type:         Desired return type ether "pandas" or "list"
-            :param list columns:            ["*"] for all or desired column in dataframe
-            :return:                        The data of given placekey in return_type
-            :rtype:                         pandas.DataFrame or dict
-        """
-        params = {"placekey": placekey}
-        dataset, data_type = self.__dataset__(columns)
-        query = gql(
-            f"""query($placekey: Placekey!) {{
-                place(placekey: $placekey) {{
-                        placekey 
-                    {dataset}
-                }}
-            }}"""
-        ) 
-        result = self.client.execute(query, variable_values=params)
-        data_frame = []
-        dict_ = {}
-        for j in data_type:
-            dict_.update(result['place'][j])
-        data_frame.append(dict_)
-
-        # adjustments
-        self.__adjustments(data_frame)
-
-        if return_type == "pandas":
-            # df = pd.DataFrame.from_dict(data_frame)
-            # self.df = df
-            # self.__change_value_type_pandas()
-            return self.df
-        elif return_type == "list":
-            # self.lst = data_frame
-            return self.lst
-        else:
-            raise safeGraphError(f'return_type "{return_type}" does not exist')
-
     def places(self, placekeys, return_type="pandas", columns=["*"]):
         """
-            :param list placekeys:          Unique Placekey ID inside an array
+            :param list placekeys:          Unique Placekey ID/IDs inside an array
+                                            [ a single placekey string or a list of placekeys are both acceptable ]
             :param str return_type:         Desired return type ether "pandas" or "list"
             :param list columns:            ["*"] for all or desired column in dataframe
             :return:                        The data of given placekeys in return_type
