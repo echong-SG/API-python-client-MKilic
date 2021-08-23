@@ -11,6 +11,7 @@ class safeGraphError(Exception):
 class HTTP_Client:
     def __init__(self, apikey, max_tries=3):
         self.df = pd.DataFrame()
+        self.lst = [] 
         self.url = 'https://api.safegraph.com/v1/graphql'
         self.apikey = apikey
         self.headers = {'Content-Type': 'application/json', 'apikey': apikey}
@@ -161,9 +162,24 @@ class HTTP_Client:
                 "__footer__": "}"
             }
         }
+        self.value_types = {
+            "naics_code": str,
+        }
 
     def __str__(self):
         return f"api url: {self.url} | apikey: {self.apikey}"
+
+    def __change_value_types_pandas(self):
+        for key, val in self.value_types.items():
+            try:
+                self.df = self.df.astype({key: val}) # errors='ignore')
+            except KeyError:
+                pass
+
+    def __change_value_types_lst(self):
+        # TODO
+        # self.lst
+        pass
 
     def save(self, path="results.csv"):
         """
@@ -201,6 +217,12 @@ class HTTP_Client:
             raise ValueError(f"*** Bad column assignment, check your paramaters: {columns}")
         return query, data_type
 
+    def __adjustments(self, data_frame):
+        self.lst = data_frame
+        self.__change_value_types_lst()
+        self.df = pd.DataFrame.from_dict(data_frame)
+        self.__change_value_types_pandas()
+
     def place(self, placekey, return_type="pandas", columns=["*"]):
         """
             :param str placekey:            Unique Placekey ID
@@ -226,12 +248,17 @@ class HTTP_Client:
             dict_.update(result['place'][j])
         data_frame.append(dict_)
 
+        # adjustments
+        self.__adjustments(data_frame)
+
         if return_type == "pandas":
-            df = pd.DataFrame.from_dict(data_frame)
-            self.df = df
-            return df
+            # df = pd.DataFrame.from_dict(data_frame)
+            # self.df = df
+            # self.__change_value_type_pandas()
+            return self.df
         elif return_type == "list":
-            return data_frame
+            # self.lst = data_frame
+            return self.lst
         else:
             raise safeGraphError(f'return_type "{return_type}" does not exist')
 
@@ -261,12 +288,13 @@ class HTTP_Client:
                 dict_.update(place[j])
             data_frame.append(dict_)
 
+        # adjustments
+        self.__adjustments(data_frame)
+
         if return_type == "pandas":
-            df = pd.DataFrame(data_frame)
-            self.df = df
-            return df
+            return self.df
         elif return_type == "list":
-            return data_frame
+            return self.lst
         else:
             raise safeGraphError(f'return_type "{return_type}" does not exist')
 

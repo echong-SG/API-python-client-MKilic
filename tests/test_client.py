@@ -3,7 +3,8 @@ import pandas as pd
 import random
 
 df_type = type(pd.DataFrame())
-safe_graph = client.HTTP_Client("x8TUW4IV3hYC1L4Xav56nChUWwtBisRY")
+apiKey = "123"
+safe_graph = client.HTTP_Client(apiKey)
 
 arr = []
 banned_keys = ["__header__", "__footer__"]
@@ -113,7 +114,7 @@ def test_null_cases():
         assert(df[i].isnull().values.any() == False)
     for i in range(len(df)):
         # Check that the naics_code column is a string in any Pandas dataframe results.
-        assert(type(df.loc[i]["naics_code"]) != str)
+        assert(type(df.loc[i]["naics_code"]) == str)
 
 def test_save():
     # Read in the result of save() and make sure it matches the original dataframe.
