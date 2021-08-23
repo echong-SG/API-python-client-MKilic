@@ -171,7 +171,7 @@ class HTTP_Client:
             saves last pulled datafame as a csv file to given location
             if path is not given saves to current location as results.csv
         """
-        self.df.to_csv(path)
+        self.df.to_csv(path_or_buf=path, index=False)
 
     def __dataset__(self, columns):
         query = ""
