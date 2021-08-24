@@ -20,15 +20,20 @@ placekeys = [
         ] 
 
 def test_places():  
-    assert type(safe_graph.places(placekeys, columns=[random.choice(arr) for i in range(random.randint(1, len(arr)))], return_type="pandas")) == df_type
-    assert type(safe_graph.places(placekeys, columns=[random.choice(arr) for i in range(random.randint(1, len(arr)))], return_type="list")) == list
-    assert type(safe_graph.places(placekeys, columns=[random.choice(arr) for i in range(random.randint(1, len(arr)))], return_type="pandas")) == df_type
-    assert type(safe_graph.places(placekeys, columns=[random.choice(arr) for i in range(random.randint(1, len(arr)))], return_type="list")) == list
-    assert type(safe_graph.places(placekeys, columns=[random.choice(arr) for i in range(random.randint(1, len(arr)))], return_type="pandas")) == df_type
-    assert type(safe_graph.places(placekeys, columns=[random.choice(arr) for i in range(random.randint(1, len(arr)))], return_type="list")) == list
-    assert type(safe_graph.places(placekeys, columns=[random.choice(arr) for i in range(random.randint(1, len(arr)))], return_type="pandas")) == df_type
-    assert type(safe_graph.places(placekeys, columns=[random.choice(arr) for i in range(random.randint(1, len(arr)))], return_type="list")) == list
+    __dataset = ["safegraph_core.*", "safegraph_geometry.*", "safegraph_patterns.*"]
+    assert type(safe_graph.places(placekeys, columns=[__dataset[0]], return_type="pandas")) == df_type
+    assert type(safe_graph.places(placekeys, columns=[random.choice(__dataset) for i in range(random.randint(1, len(__dataset)-1))], return_type="pandas")) == df_type
+    assert type(safe_graph.places(placekeys, columns=[random.choice(__dataset) for i in range(random.randint(1, len(__dataset)))], return_type="pandas")) == df_type
     
+    assert type(safe_graph.places(placekeys, columns=[random.choice(arr) for i in range(random.randint(1, len(arr)))], return_type="pandas")) == df_type
+    assert type(safe_graph.places(placekeys, columns=[random.choice(arr) for i in range(random.randint(1, len(arr)))], return_type="list")) == list
+    assert type(safe_graph.places(placekeys, columns=[random.choice(arr) for i in range(random.randint(1, len(arr)))], return_type="pandas")) == df_type
+    assert type(safe_graph.places(placekeys, columns=[random.choice(arr) for i in range(random.randint(1, len(arr)))], return_type="list")) == list
+    assert type(safe_graph.places(placekeys, columns=[random.choice(arr) for i in range(random.randint(1, len(arr)))], return_type="pandas")) == df_type
+    assert type(safe_graph.places(placekeys, columns=[random.choice(arr) for i in range(random.randint(1, len(arr)))], return_type="list")) == list
+    assert type(safe_graph.places(placekeys, columns=[random.choice(arr) for i in range(random.randint(1, len(arr)))], return_type="pandas")) == df_type
+    assert type(safe_graph.places(placekeys, columns=[random.choice(arr) for i in range(random.randint(1, len(arr)))], return_type="list")) == list
+
 # def test_jsonPairDataFrame():  
 #     df = safe_graph.places(placekeys, columns=[random.choice(arr) for i in range(random.randint(1, len(arr)))], return_type="pandas")
 #     # pure_data = df[["device_type", "placekey"]].dropna().values.tolist()

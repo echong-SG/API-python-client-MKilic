@@ -23,6 +23,7 @@ class HTTP_Client:
         )
         self.client = gql_Client(transport=self.transport, fetch_schema_from_transport=True)
         self.dataset = ["safegraph_core", "safegraph_geometry", "safegraph_patterns"]
+        self.__dataset = ["safegraph_core.*", "safegraph_geometry.*", "safegraph_patterns.*"] # for dataset column functionality
         self.__pattern__ = {
             "safegraph_core": { 
                 "__header__": "safegraph_core {",
@@ -177,42 +178,53 @@ class HTTP_Client:
                 pass
 
     def __change_value_types_lst(self):
-        # TODO
-        # self.lst
-        pass
+        for key, val in self.value_types.items():
+            if not key in self.lst[0].keys():
+                # if not in first element of list not in other pairs
+                continue
+            for lst in self.lst:
+                lst[key] = val(lst[key])
 
     def save(self, path="results.csv"):
         """
             :param str path:                location of csv file e.g: "results.csv"
-            saves last pulled datafame as a csv file to given location
-            if path is not given saves to current location as results.csv
+                saves last pulled datafame as a csv file to given location
+                if path is not given saves to current location as results.csv
         """
         self.df.to_csv(path_or_buf=path, index=False)
 
     def __dataset__(self, columns):
         query = ""
         data_type = []
+        column_errors = []
         if type(columns) != list:
-            raise ValueError("*** columns argumnet has to be a list")
-        if columns[0] == "*":
+            raise ValueError("*** columns argument must to be a list")
+        data_pull = [i.rstrip(".*") for i in columns if i in self.__dataset]
+        if len(data_pull) > 0:
+            # if spesific dataset(s) wanted
+            for i in data_pull:
+                for j in self.__pattern__[i]:
+                    query += self.__pattern__[i][j] + " "
+                data_type.append(i)
+        elif columns[0] == "*":
+            # if all data from all datasets wanted
             for i in self.__pattern__:
                 for j in self.__pattern__[i]:
                     query += self.__pattern__[i][j] + " "
             data_type = self.dataset
         else:
+            # if spesific column(s) wanted
             for i in self.dataset:
-                if columns == "*":
-                    for j in self.__pattern__[i]:
-                        query += self.__pattern__[i][j] + " "
+                available_columns = [j for j in self.__pattern__[i] if j in columns]
+                if len(available_columns) > 0:
                     data_type.append(i)
-                else:
-                    available_columns = [j for j in self.__pattern__[i] if j in columns]
-                    if len(available_columns) > 0:
-                        data_type.append(i)
-                        query += self.__pattern__[i]["__header__"] + " "
-                        for j in available_columns:
-                            query += self.__pattern__[i][j] + " "
-                        query += self.__pattern__[i]["__footer__"] + " "
+                    query += self.__pattern__[i]["__header__"] + " "
+                    for j in available_columns:
+                        query += self.__pattern__[i][j] + " "
+                    query += self.__pattern__[i]["__footer__"] + " "
+                    # else:
+                    #     column_errors.append(object)
+                    #     raise ValueError("Invalid column name(s): 'fake_column', 'fake_column2'")
         if query == "":
             raise ValueError(f"*** Bad column assignment, check your paramaters: {columns}")
         return query, data_type
@@ -223,7 +235,7 @@ class HTTP_Client:
         self.df = pd.DataFrame.from_dict(data_frame)
         self.__change_value_types_pandas()
 
-    def places(self, placekeys, return_type="pandas", columns=["*"]):
+    def places(self, placekeys, columns, return_type="pandas"):
         """
             :param list placekeys:          Unique Placekey ID/IDs inside an array
                                             [ a single placekey string or a list of placekeys are both acceptable ]
