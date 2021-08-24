@@ -193,10 +193,21 @@ class HTTP_Client:
         """
         self.df.to_csv(path_or_buf=path, index=False)
 
+    def __column_check_raise(self, columns):
+        dict_ = {el:0 for el in columns}
+        for i in self.__pattern__:
+            for j in columns:
+                if j not in self.__pattern__[i].keys():
+                    dict_[j]+=1
+        invalid_values = [i for i in dict_ if dict_[i] >= len(self.__pattern__.keys())]
+        if len(invalid_values) > 0:
+            raise ValueError(f'''
+                Invalid column name(s): "{'", "'.join(invalid_values)}"
+            ''')
+
     def __dataset__(self, columns):
         query = ""
         data_type = []
-        column_errors = []
         if type(columns) != list:
             raise ValueError("*** columns argument must to be a list")
         data_pull = [i.rstrip(".*") for i in columns if i in self.__dataset]
@@ -213,6 +224,7 @@ class HTTP_Client:
                     query += self.__pattern__[i][j] + " "
             data_type = self.dataset
         else:
+            self.__column_check_raise(columns)
             # if spesific column(s) wanted
             for i in self.dataset:
                 available_columns = [j for j in self.__pattern__[i] if j in columns]
@@ -222,11 +234,6 @@ class HTTP_Client:
                     for j in available_columns:
                         query += self.__pattern__[i][j] + " "
                     query += self.__pattern__[i]["__footer__"] + " "
-                    # else:
-                    #     column_errors.append(object)
-                    #     raise ValueError("Invalid column name(s): 'fake_column', 'fake_column2'")
-        if query == "":
-            raise ValueError(f"*** Bad column assignment, check your paramaters: {columns}")
         return query, data_type
 
     def __adjustments(self, data_frame):
