@@ -191,9 +191,9 @@ class HTTP_Client:
 
     def save(self, path):
         """
-            :param str path:                location of csv file e.g: "results.csv"
-                saves last pulled datafame as a csv file to given location
-                if path is not given saves to current location as results.csv
+            :param str path:                location of the file e.g: "results.csv"
+                saves as .json file if return_type was "list" 
+                saves as .csv file if return_type was "pandas"
         """
         if self.return_type == "pandas":
             self.df.to_csv(path_or_buf=path, index=False)
