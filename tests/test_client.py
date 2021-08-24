@@ -1,6 +1,7 @@
 from safegraph_ql import client
 import pandas as pd
 import random
+from safegraph_ql.types import __PATTERNS__
 
 df_type = type(pd.DataFrame())
 apiKey = open("apiKey.txt").readlines()[0]
@@ -8,9 +9,9 @@ safe_graph = client.HTTP_Client(apiKey)
 
 arr = []
 banned_keys = ["__header__", "__footer__"]
-keys = [i for i in safe_graph.__pattern__.keys()] 
+keys = [i for i in __PATTERNS__.keys()] 
 for i in keys:
-    arr += [i for i in safe_graph.__pattern__[i] if i not in banned_keys]
+    arr += [i for i in __PATTERNS__[i] if i not in banned_keys]
 
 placekeys = [
         "224-222@5vg-7gv-d7q", # "222-222@5qw-shj-7qz", "222-222@5s6-pyc-7qz", "zzy-222@5xc-k8q-zmk",
@@ -18,6 +19,24 @@ placekeys = [
         "zzy-227@5sb-8cw-pjv", # (O'Hare Airport)
         "222-223@65y-rxx-djv", # (Walmart in Albany, NY)
         ] 
+
+def test_get_place_by_locatian_name_address():
+    assert type(safe_graph.place_by_name(
+        location_name= "Taco Bell", 
+        street_address= "710 3rd St", 
+        city= "San Francisco", 
+        region= "CA", 
+        iso_country_code= "US",
+        return_type="pandas",
+        columns="*")) == df_type
+    assert type(safe_graph.place_by_name(
+        location_name= "Taco Bell", 
+        street_address= "710 3rd St", 
+        city= "San Francisco", 
+        region= "CA", 
+        iso_country_code= "US",
+        return_type="list",
+        columns="*")) == list
 
 def test_places():  
     __dataset = ["safegraph_core.*", "safegraph_geometry.*", "safegraph_patterns.*"]
@@ -40,14 +59,6 @@ def test_places():
     assert type(safe_graph.places(placekeys, columns=random.sample(arr,random.randint(1, len(arr))), return_type="list")) == list
     assert type(safe_graph.places(placekeys, columns=random.sample(arr,random.randint(1, len(arr))), return_type="pandas")) == df_type
     assert type(safe_graph.places(placekeys, columns=random.sample(arr,random.randint(1, len(arr))), return_type="list")) == list
-
-def test_get_place_by_locatian_name_address():
-    assert type(safe_graph.place_by_name(
-        location_name= "Taco Bell", 
-        street_address= "710 3rd St", 
-        city= "San Francisco", 
-        region= "CA", 
-        iso_country_code= "US")) == df_type
 
 def test_null_cases():
     null_check = [
