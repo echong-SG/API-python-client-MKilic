@@ -216,21 +216,21 @@ class HTTP_Client:
     def __dataset__(self, columns):
         query = ""
         data_type = []
-        if type(columns) != list:
-            raise ValueError("*** columns argument must to be a list")
         data_pull = [i.rstrip(".*") for i in columns if i in self.__dataset]
-        if len(data_pull) > 0:
-            # if spesific dataset(s) wanted
-            for i in data_pull:
-                for j in self.__pattern__[i]:
-                    query += self.__pattern__[i][j] + " "
-                data_type.append(i)
-        elif columns[0] == "*":
+        if columns == "*":
             # if all data from all datasets wanted
             for i in self.__pattern__:
                 for j in self.__pattern__[i]:
                     query += self.__pattern__[i][j] + " "
             data_type = self.dataset
+        elif type(columns) != list:
+            raise ValueError("*** columns argument must to be a list")
+        elif len(data_pull) > 0:
+            # if spesific dataset(s) wanted
+            for i in data_pull:
+                for j in self.__pattern__[i]:
+                    query += self.__pattern__[i][j] + " "
+                data_type.append(i)
         else:
             self.__column_check_raise(columns)
             # if spesific column(s) wanted
@@ -255,7 +255,7 @@ class HTTP_Client:
             :param list placekeys:          Unique Placekey ID/IDs inside an array
                                             [ a single placekey string or a list of placekeys are both acceptable ]
             :param str return_type:         Desired return type ether "pandas" or "list"
-            :param list columns:            ["*"] for all or desired column in dataframe
+            :param list columns:            * as string for all or desired column(s) in a [list]
             :return:                        The data of given placekeys in return_type
             :rtype:                         pandas.DataFrame or dict
         """
@@ -284,7 +284,6 @@ class HTTP_Client:
         if self.return_type == "pandas":
             return self.df
         elif self.return_type == "list":
-            import pdb;pdb.set_trace()
             return self.lst
         else:
             raise safeGraphError(f'return_type "{return_type}" does not exist')

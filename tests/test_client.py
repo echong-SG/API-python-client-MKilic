@@ -21,6 +21,7 @@ placekeys = [
 
 def test_places():  
     __dataset = ["safegraph_core.*", "safegraph_geometry.*", "safegraph_patterns.*"]
+    assert type(safe_graph.places(placekeys, columns="*", return_type="pandas")) == df_type
     assert type(safe_graph.places(placekeys, columns=[__dataset[0]], return_type="pandas")) == df_type
     assert type(safe_graph.places(placekeys, columns=random.sample(__dataset,random.randint(1, len(__dataset))), return_type="pandas")) == df_type
     assert type(safe_graph.places(placekeys, columns=random.sample(__dataset,random.randint(1, len(__dataset))), return_type="pandas")) == df_type
@@ -39,11 +40,6 @@ def test_places():
     assert type(safe_graph.places(placekeys, columns=random.sample(arr,random.randint(1, len(arr))), return_type="list")) == list
     assert type(safe_graph.places(placekeys, columns=random.sample(arr,random.randint(1, len(arr))), return_type="pandas")) == df_type
     assert type(safe_graph.places(placekeys, columns=random.sample(arr,random.randint(1, len(arr))), return_type="list")) == list
-
-# def test_jsonPairDataFrame():  
-#     df = safe_graph.places(placekeys, columns=random.sample(arr,random.randint(1, len(arr))), return_type="pandas")
-#     # pure_data = df[["device_type", "placekey"]].dropna().values.tolist()
-#     # pd.DataFrame(list(chain.from_iterable(df["device_type"].dropna().to_list())))
 
 def test_get_place_by_locatian_name_address():
     assert type(safe_graph.place_by_name(
@@ -91,7 +87,7 @@ def test_null_cases():
         "popularity_by_day",
         "device_type",
     ] 
-    df = safe_graph.places(placekeys, columns=["*"], return_type="pandas")
+    df = safe_graph.places(placekeys, columns="*", return_type="pandas")
     for i in null_check:
         assert(df[i].isnull().values.any() == False)
     for i in range(len(df)):
@@ -100,7 +96,7 @@ def test_null_cases():
 
 def test_save():
     # Read in the result of save() and make sure it matches the original dataframe.
-    df = safe_graph.places(placekeys, columns=["*"], return_type="pandas")
+    df = safe_graph.places(placekeys, columns="*", return_type="pandas")
     path = "results.csv"
     safe_graph.save(path)
     saved_df = pd.read_csv(path)
