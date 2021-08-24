@@ -1,9 +1,12 @@
 import pandas as pd
-import pprint
-printy =  pprint.PrettyPrinter(indent=4).pprint
+import json
 from gql import gql
 from gql import Client as gql_Client
 from gql.transport.requests import RequestsHTTPTransport
+### DEBUGGER
+import pprint
+printy =  pprint.PrettyPrinter(indent=4).pprint
+##
 
 class safeGraphError(Exception):
     pass
@@ -166,6 +169,7 @@ class HTTP_Client:
         self.value_types = {
             "naics_code": str,
         }
+        self.return_type = "pandas"
 
     def __str__(self):
         return f"api url: {self.url} | apikey: {self.apikey}"
@@ -185,13 +189,17 @@ class HTTP_Client:
             for lst in self.lst:
                 lst[key] = val(lst[key])
 
-    def save(self, path="results.csv"):
+    def save(self, path):
         """
             :param str path:                location of csv file e.g: "results.csv"
                 saves last pulled datafame as a csv file to given location
                 if path is not given saves to current location as results.csv
         """
-        self.df.to_csv(path_or_buf=path, index=False)
+        if self.return_type == "pandas":
+            self.df.to_csv(path_or_buf=path, index=False)
+        elif self.return_type == "list":
+            with open(path, 'w') as json_file:
+                json.dump(self.lst, json_file, indent=4)
 
     def __column_check_raise(self, columns):
         dict_ = {el:0 for el in columns}
@@ -251,6 +259,7 @@ class HTTP_Client:
             :return:                        The data of given placekeys in return_type
             :rtype:                         pandas.DataFrame or dict
         """
+        self.return_type = return_type
         params = {"placekeys": placekeys}
         dataset, data_type = self.__dataset__(columns)
         query = gql(
@@ -272,9 +281,10 @@ class HTTP_Client:
         # adjustments
         self.__adjustments(data_frame)
 
-        if return_type == "pandas":
+        if self.return_type == "pandas":
             return self.df
-        elif return_type == "list":
+        elif self.return_type == "list":
+            import pdb;pdb.set_trace()
             return self.lst
         else:
             raise safeGraphError(f'return_type "{return_type}" does not exist')

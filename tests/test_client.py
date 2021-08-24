@@ -31,7 +31,7 @@ def test_places():
             random.sample(arr,random.randint(1, len(arr))), 
         return_type="pandas")
     except Exception as e:
-        assert(e == ValueError)
+        assert(type(e) == ValueError)
     assert type(safe_graph.places(placekeys, columns=random.sample(arr,random.randint(1, len(arr))), return_type="list")) == list
     assert type(safe_graph.places(placekeys, columns=random.sample(arr,random.randint(1, len(arr))), return_type="pandas")) == df_type
     assert type(safe_graph.places(placekeys, columns=random.sample(arr,random.randint(1, len(arr))), return_type="list")) == list
