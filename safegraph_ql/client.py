@@ -189,17 +189,27 @@ class HTTP_Client:
             for lst in self.lst:
                 lst[key] = val(lst[key])
 
-    def save(self, path):
+    def save(self, path="__default__"):
         """
             :param str path:                location of the file e.g: "results.csv"
                 saves as .json file if return_type was "list" 
                 saves as .csv file if return_type was "pandas"
+                saves last pulled datafame as a csv/json file to given location
+                if path is not given saves to current location as results.csv or results.json
         """
         if self.return_type == "pandas":
-            self.df.to_csv(path_or_buf=path, index=False)
+            if path != "__default__":
+                self.df.to_csv(path_or_buf=path, index=False)
+            else:
+               self.df.to_csv(path_or_buf="results.csv", index=False) 
         elif self.return_type == "list":
-            with open(path, 'w') as json_file:
-                json.dump(self.lst, json_file, indent=4)
+            if path != "__default__":
+                with open(path, 'w') as json_file:
+                    json.dump(self.lst, json_file, indent=4)
+            else:
+                with open("results.json", 'w') as json_file:
+                    json.dump(self.lst, json_file, indent=4)
+
 
     def __column_check_raise(self, columns):
         dict_ = {el:0 for el in columns}
