@@ -20,6 +20,13 @@ placekeys = [
         "222-223@65y-rxx-djv", # (Walmart in Albany, NY)
         ] 
 
+def test_search(): 
+    assert type(safe_graph.search( brand = "starbucks", brand_id = None, naics_code = None, phone_number = None, street_address = None, city = None, region = None, postal_code = None, iso_country_code = None, max_results=70, after_result_number=20, columns="safegraph_core.*", return_type="list")) == list
+    assert type(safe_graph.search( brand = "starbucks", brand_id = None, naics_code = None, phone_number = None, street_address = None, city = None, region = None, postal_code = None, iso_country_code = None, max_results=55, after_result_number=0, columns="safegraph_core.*", return_type="pandas")) == df_type
+    assert type(safe_graph.search( brand = "starbucks", brand_id = None, naics_code = None, phone_number = None, street_address = None, city = None, region = None, postal_code = None, iso_country_code = None, max_results=55, after_result_number=5, columns="safegraph_core.*", return_type="pandas")) == df_type
+    assert type(safe_graph.search( brand = "starbucks", brand_id = None, naics_code = None, phone_number = None, street_address = None, city = None, region = None, postal_code = None, iso_country_code = None, max_results=70, after_result_number=10, columns="safegraph_core.*", return_type="pandas")) == df_type
+    assert type(safe_graph.search( brand = "starbucks", brand_id = None, naics_code = None, phone_number = None, street_address = None, city = None, region = None, postal_code = None, iso_country_code = None, max_results=55, after_result_number=15, columns="safegraph_core.*", return_type="list")) == list
+
 def test_get_place_by_locatian_name_address():
     assert type(safe_graph.place_by_name(
         location_name= "Taco Bell", 

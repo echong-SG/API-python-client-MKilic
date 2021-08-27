@@ -5,8 +5,8 @@ from gql import Client as gql_Client
 from gql.transport.requests import RequestsHTTPTransport
 from .types import __VALUE_TYPES__, DATASET, INNER_DATASET, __PATTERNS__
 ### DEBUGGER
-import pprint
-printy =  pprint.PrettyPrinter(indent=4).pprint
+# import pprint
+# printy =  pprint.PrettyPrinter(indent=4).pprint
 ##
 
 class safeGraphError(Exception):
@@ -46,13 +46,16 @@ class HTTP_Client:
             for lst in self.lst:
                 lst[key] = val(lst[key])
 
-    def save(self, path="__default__"):
+    def save(self, path="__default__", return_type="__default__"):
         """
             :param str path:                location of the file e.g: "results.csv"
                 saves as a .json file if return_type was "list" 
                 saves as a .csv file if return_type was "pandas"
                 if path is not given saves to current location as results.csv or results.json
+            :param str return_type:          return type of the saved format by default last return format
         """
+        if return_type == "__default__":
+            return_type = self.return_type
         if self.return_type == "pandas":
             if path != "__default__":
                 self.df.to_csv(path_or_buf=path, index=False)
@@ -89,8 +92,25 @@ class HTTP_Client:
                 for j in __PATTERNS__[i]:
                     query += __PATTERNS__[i][j] + " "
             data_type = DATASET
+        elif columns == "safegraph_core.*":
+            # if all data from safegraph_core
+            for j in __PATTERNS__["safegraph_core"]:
+                query += __PATTERNS__["safegraph_core"][j] + " "
+            data_type = ["safegraph_core"]
+        elif columns == "safegraph_geometry.*":
+            # if all data from safegraph_geometry
+            for j in __PATTERNS__["safegraph_geometry"]:
+                query += __PATTERNS__['safegraph_geometry'][j] + " "
+            data_type = ["safegraph_geometry"]
+        elif columns == "safegraph_patterns.*":
+            # if all data from safegraph_patterns
+            for j in __PATTERNS__["safegraph_patterns"]:
+                query += __PATTERNS__['safegraph_patterns'][j] + " "
+            data_type = ["safegraph_patterns"]
         elif type(columns) != list:
-            raise ValueError("*** columns argument must to be a list")
+            raise ValueError("""*** columns argument must to be a list or one of the following string: 
+                *, safegraph_core.*, safegraph_geometry.*, safegraph_patterns.*
+            """)
         elif len(data_pull) > 0:
             # if spesific dataset(s) wanted
             for i in data_pull:
@@ -163,10 +183,9 @@ class HTTP_Client:
             :param str iso_country_code:    iso_country_code of the desidred place
             :param list/str columns:        * as string for all or desired column(s) in a [list]
             :param str return_type:         Desired return type ether "pandas" or "list"
+                                                default -> "pandas"
             :return:                        The data of given placekey in return_type
             :rtype:                         pandas.DataFrame or dict
-            XXX EXAMPLE 
-                :raises ValueError:         if placekey is not found in database
         """
         self.return_type = return_type
         params = {
@@ -208,98 +227,90 @@ class HTTP_Client:
         else:
             raise safeGraphError(f'return_type "{return_type}" does not exist')
 
-    def search(return_type="pandas"):
-        pass
-        """
-            query {
-              search(filter: {
-                naics_code: 445120
-              }) {
-                placekey
-                safegraph_core {
-                  location_name
-                  street_address
-                  city
-                  region
-                  iso_country_code
-                }
-              }
-            }
-        """
+    def __chunks__(self, lst, n):
+     """Yield successive n-sized chunks from lst."""
+     for i in range(0, len(lst), n):
+         yield lst[i:i + n]
 
-        # Staggered Search
+    def search(self, columns, 
+        brand = None, brand_id = None, naics_code = None, 
+        # address with following sub-fields
+        phone_number = None, street_address = None, city = None, region = None, postal_code = None, iso_country_code = None,
+        max_results=20,
+        after_result_number=0,
+        return_type="pandas"):
         """
-            query {
-              search(first: 15 after: 20 filter: {
-                brand: "starbucks"
-                }) {
-                placekey
-                
-                safegraph_core {
-                  location_name
-                  street_address
-                  city
-                  region
-                  iso_country_code
-                  latitude
-                  longitude
-                  brands {
-                    brand_id
-                    brand_name
-                  }
-                }
-                safegraph_patterns {
-                  date_range_start
-                  date_range_end
-                  raw_visit_counts
-                }
-              }
-            }
+            :param str brand:               brand for searching query
+            :param str brand_id:            brand_id for searching query
+            :param str naics_code:          naics_code for searching query
+            :param str phone_number:        phone_number for searching query
+            :param str street_address:      street_address of the desidred place
+            :param str city:                city of the desidred place
+            :param str region:              region of the desidred place
+            :param str postal_code:         postal_code of the desidred place
+            :param str iso_country_code:    iso_country_code of the desidred place
+            :param list/str columns:        * as string for all or desired column(s) in a [list]
+            :param str return_type:         Desired return type ether "pandas" or "list"
+                                                default -> "pandas"
+            :return:                        The data of given placekey in return_type
+            :rtype:                         pandas.DataFrame or dict
+
         """
-        # Search by Multiple Attributes
-        """
-            query {
-              search(filter: {
-                brand: "Starbucks"
-                address:{
-                  city: "San Francisco"
-                }
-              }) {
-                placekey
-                safegraph_core {
-                  location_name
-                  street_address
-                  city
-                  region
-                  iso_country_code
-                }
-              }
-            }
-        """
-        # Search for Multiple Values Per Attribute Using Variables
-        # https://docs.safegraph.com/reference/places-api-examples#section-search-for-multiple-values-per-attribute-using-variables
-        """
-            query SearchByRegionAndNaics($region: String! $naics: Int!){
-              search(filter: { 
-                naics_code: $naics
-                address: {
-                  region: $region
-                }
-              })
-            {
-                placekey
-                safegraph_core{
-                  location_name
-                  top_category
-                  sub_category
-                  naics_code
-                }
-                safegraph_geometry{
-                  street_address
-                  region
-                  postal_code
-                    polygon_wkt
-                }
-              }
-            }
-        """
+        self.return_type = return_type
+        dataset, data_type = self.__dataset__(columns)
+        params = f"""
+{(lambda x,y: f' {x}: "{y}" ' if y!=None else "")("brand", brand)}
+{(lambda x,y: f' {x}: "{y}" ' if y!=None else "")("brand_id", brand_id)}
+{(lambda x,y: f' {x}: "{y}" ' if y!=None else "")("naics_code", naics_code)}
+"""
+        address = f""" address: {{
+{(lambda x,y: f' {x}: "{y}" ' if y!=None else "")("phone_number", phone_number)}
+{(lambda x,y: f' {x}: "{y}" ' if y!=None else "")("street_address", street_address)}
+{(lambda x,y: f' {x}: "{y}" ' if y!=None else "")("city", city)}
+{(lambda x,y: f' {x}: "{y}" ' if y!=None else "")("region", region)}
+{(lambda x,y: f' {x}: "{y}" ' if y!=None else "")("postal_code", postal_code)}
+{(lambda x,y: f' {x}: "{y}" ' if y!=None else "")("iso_country_code", iso_country_code)}
+}}"""
+        if address != ' address: {\n\n\n\n\n\n\n}':
+            params+=address
+        after = 0
+        output = []
+        chunks = self.__chunks__([i for i in range(max_results)], 20)
+        for i in chunks:
+            first = len(i)
+            query = gql(
+                f"""query {{
+                    search(first: {first} after: {after+after_result_number} filter: {{
+                        {params}
+                        }}) {{ 
+                        placekey 
+                        {dataset}
+                    }}
+                }}"""
+            )
+            result = self.client.execute(query)
+            output+=result['search']
+            after += first
+                        # print(f"{max_results=},{len(output)=}")
+                        # arr = []
+                        # for i in output: 
+                        #     if i['placekey'] not in arr:
+                        #         arr.append(i['placekey'])
+        data_frame = []
+        for out in output:
+            dict_ = {}
+            for j in data_type:
+                dict_.update(out[j])
+            dict_['placekey'] = out["placekey"]
+            data_frame.append(dict_)
+
+        # adjustments
+        self.__adjustments(data_frame)
+        import pdb;pdb.set_trace()
+
+        if self.return_type == "pandas":
+            return self.df
+        elif self.return_type == "list":
+            return self.lst
+        else:
+            raise safeGraphError(f'return_type "{return_type}" does not exist')

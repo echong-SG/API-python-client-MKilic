@@ -146,3 +146,100 @@ query = f"""query {{
             return self.lst
         else:
             raise safeGraphError(f'return_type "{return_type}" does not exist')
+
+
+        #import pdb;pdb.set_trace()
+        #pass
+        """
+            query {
+              search(filter: {
+                naics_code: 445120
+              }) {
+                placekey
+                safegraph_core {
+                  location_name
+                  street_address
+                  city
+                  region
+                  iso_country_code
+                }
+              }
+            }
+        """
+
+        # Staggered Search
+        """
+            query {
+              search(first: 15 after: 20 filter: {
+                brand: "starbucks"
+                }) {
+                placekey
+                
+                safegraph_core {
+                  location_name
+                  street_address
+                  city
+                  region
+                  iso_country_code
+                  latitude
+                  longitude
+                  brands {
+                    brand_id
+                    brand_name
+                  }
+                }
+                safegraph_patterns {
+                  date_range_start
+                  date_range_end
+                  raw_visit_counts
+                }
+              }
+            }
+        """
+        # Search by Multiple Attributes
+        """
+            query {
+              search(filter: {
+                brand: "Starbucks"
+                address:{
+                  city: "San Francisco"
+                }
+              }) {
+                placekey
+                safegraph_core {
+                  location_name
+                  street_address
+                  city
+                  region
+                  iso_country_code
+                }
+              }
+            }
+        """
+        # Search for Multiple Values Per Attribute Using Variables
+        # https://docs.safegraph.com/reference/places-api-examples#section-search-for-multiple-values-per-attribute-using-variables
+        """
+            query SearchByRegionAndNaics($region: String! $naics: Int!){
+              search(filter: { 
+                naics_code: $naics
+                address: {
+                  region: $region
+                }
+              })
+            {
+                placekey
+                safegraph_core{
+                  location_name
+                  top_category
+                  sub_category
+                  naics_code
+                }
+                safegraph_geometry{
+                  street_address
+                  region
+                  postal_code
+                    polygon_wkt
+                }
+              }
+            }
+        """
