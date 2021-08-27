@@ -306,7 +306,6 @@ class HTTP_Client:
 
         # adjustments
         self.__adjustments(data_frame)
-        import pdb;pdb.set_trace()
 
         if self.return_type == "pandas":
             return self.df

@@ -21,8 +21,11 @@ placekeys = [
         ] 
 
 def test_search(): 
-    assert type(safe_graph.search( brand = "starbucks", brand_id = None, naics_code = None, phone_number = None, street_address = None, city = None, region = None, postal_code = None, iso_country_code = None, 
-        max_results=70, after_result_number=20, columns="safegraph_core.*", return_type="list")) == list
+    max_results = 20
+    test = safe_graph.search( brand = "starbucks", brand_id = None, naics_code = None, phone_number = None, street_address = None, city = None, region = None, postal_code = None, iso_country_code = None, 
+        max_results=max_results, after_result_number=20, columns="safegraph_core.*", return_type="list")
+    assert type(test) == list
+    assert len(test) == max_results
     assert type(safe_graph.search( brand = "starbucks", brand_id = None, naics_code = None, phone_number = None, street_address = None, city = None, region = None, postal_code = None, iso_country_code = None, 
         max_results=55, after_result_number=0, columns="safegraph_core.*", return_type="pandas")) == df_type
     assert type(safe_graph.search( brand = "starbucks", brand_id = None, naics_code = None, phone_number = None, street_address = None, city = None, region = None, postal_code = None, iso_country_code = None, 
