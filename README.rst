@@ -30,9 +30,11 @@ Datasets
 * CORE PLACES
 Reliable POI For Accuracy In Your Data Models
 With global coverage for any brand you request, our Core dataset provides high quality data for the POI you care about.
+
 * GEOMETRY
 Machine Generated, Human Verified Building Footprint Polygons
 SafeGraph Geometry allows data leaders to understand POI footprints with spatial hierarchy metadata.
+
 * PATTERNS
 Understand Consumer Behavior With Verified Foot Traffic Data
 Aggregate foot fall data to either specific POIs or to Census Block Groups (CBGs) with SafeGraph Patterns.
