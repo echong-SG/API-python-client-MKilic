@@ -28,7 +28,7 @@ First, get yourself a `SafeGraph API key <https://shop.safegraph.com/api>`_.
 Datasets
 =====
 * CORE PLACES
-Reliable POI For Accuracy In Your Data Models
+Reliable POI For Accuracy In Your Data Models\n
 With global coverage for any brand you request, our Core dataset provides high quality data for the POI you care about.
 
 * GEOMETRY
