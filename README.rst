@@ -5,17 +5,16 @@ safegraph_ql
 
 API of https://api.safegraph.com/v1/graphql
 
+Installation
+=====
 ::
-
     pip install safegraph_ql
 
 Usage
 =====
-
 First, get yourself a `SafeGraph API key <https://shop.safegraph.com/api>`_.
 
 ::
-
     from safegraph_ql import client
     graph = client.HTTP_Client("MY_API_KEY")
     placekeys = [
@@ -23,6 +22,7 @@ First, get yourself a `SafeGraph API key <https://shop.safegraph.com/api>`_.
         "zzy-227@5sb-8cw-pjv", # (O'Hare Airport)
         "222-223@65y-rxx-djv", # (Walmart in Albany, NY)
         ] 
+    # returns pandas dataframe
     df = graph.places(placekeys, columns="*")
 
 Datasets

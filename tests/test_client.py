@@ -4,7 +4,11 @@ import random
 from safegraph_ql.types import __PATTERNS__
 
 df_type = type(pd.DataFrame())
-apiKey = open("apiKey.txt").readlines()[0]
+try:
+    apiKey = open("apiKey.txt").readlines()[0]
+except Exception as e:
+    print("create file apiKey.txt and put your api key from https://shop.safegraph.com/api inside")
+    raise e
 safe_graph = client.HTTP_Client(apiKey)
 
 arr = []
