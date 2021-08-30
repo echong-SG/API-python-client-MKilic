@@ -1,12 +1,12 @@
-======
+============
 safegraph_ql
-======
+============
 .. image:: https://github.com/datamade/census/workflows/Python%20package/badge.svg
 
 API of https://api.safegraph.com/v1/graphql
 
 Installation
-=====
+============
 ::
 
     pip install safegraph_ql
@@ -28,7 +28,7 @@ First, get yourself a `SafeGraph API key <https://shop.safegraph.com/api>`_.
     df = graph.places(placekeys, columns="*")
 
 Datasets
-=====
+========
 * CORE PLACES
 Reliable POI For Accuracy In Your Data Models.
 With global coverage for any brand you request, our Core dataset provides high quality data for the POI you care about.

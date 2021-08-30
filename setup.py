@@ -1,17 +1,17 @@
 from setuptools import find_packages, setup
 import os
 
-# Get version from __version__.py file
-current_folder = os.path.abspath(os.path.dirname(__file__))
-about = {}
-with open(os.path.join(current_folder, "safegraph_ql", "__version__.py"), "r") as f:
-    exec(f.read(), about)
+DIRECTORY = os.path.dirname(__file__)
+
+#REQUIREMENTS = open(os.path.join(DIRECTORY, "REQUIREMENTS.txt")).read().split()
+VERSION = open(os.path.join(DIRECTORY, "safegraph_ql", "__version__.py")).read()
+READ_ME = open(os.path.join(DIRECTORY, "README.rst")).read()
 
 setup(
     name='safegraph_ql',
-    version=about["__version__"],
+    version=VERSION,
     description='graphQL API of safegraph.com using Python functions',
-    long_description=open("README.rst").read(),
+    long_description=READ_ME,
     long_description_content_type="text/x-rst",
     url="https://github.com/echong-SG/API-python-client-MKilic",
     author="Renas Mirkan Kilic",
