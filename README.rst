@@ -8,6 +8,7 @@ API of https://api.safegraph.com/v1/graphql
 Installation
 =====
 ::
+
     pip install safegraph_ql
 
 Usage
@@ -15,6 +16,7 @@ Usage
 First, get yourself a `SafeGraph API key <https://shop.safegraph.com/api>`_.
 
 ::
+
     from safegraph_ql import client
     graph = client.HTTP_Client("MY_API_KEY")
     placekeys = [
