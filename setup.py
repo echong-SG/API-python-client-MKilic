@@ -13,7 +13,7 @@ setup(
     description='graphQL API of safegraph.com using Python functions',
     long_description=READ_ME,
     long_description_content_type="text/x-rst",
-    url="https://github.com/mirkan1/PI-python-client-MKilic",
+    url="https://github.com/echong-SG/API-python-client-MKilic",
     author="Renas Mirkan Kilic",
     author_email="mirkanbaba1@gmail.com",
     license='MIT',
@@ -28,7 +28,7 @@ setup(
         "Programming Language :: Python :: Implementation :: PyPy",
     ],
     keywords="api graphql safegraph gql safegraph-api",
-    packages=find_packages(include=['safegraph_ql']),
+    packages=find_packages(include=['safegraphql']),
     install_requires=[
         # "graphql-core>=2.3.2",
         # "yarl>=1.6,<2.0",

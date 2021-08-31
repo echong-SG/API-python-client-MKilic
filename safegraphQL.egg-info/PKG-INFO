@@ -1,0 +1,70 @@
+Metadata-Version: 2.1
+Name: safegraphQL
+Version: 0.1.3
+Summary: graphQL API of safegraph.com using Python functions
+Home-page: https://github.com/echong-SG/API-python-client-MKilic
+Author: Renas Mirkan Kilic
+Author-email: mirkanbaba1@gmail.com
+License: MIT
+Description: ============
+        safegraphQL
+        ============
+        .. image:: https://github.com/datamade/census/workflows/Python%20package/badge.svg
+        
+        API of https://api.safegraph.com/v1/graphql
+        
+        Installation
+        ============
+        ::
+        
+            pip install safegraphQL
+        
+        Usage
+        =====
+        First, get yourself a `SafeGraph API key <https://shop.safegraph.com/api>`_.
+        
+        ::
+        
+            from safegraphql import client
+            graph = client.HTTP_Client("MY_API_KEY")
+            placekeys = [
+                "zzw-222@8fy-fjg-b8v", # (Disney World)
+                "zzy-227@5sb-8cw-pjv", # (O'Hare Airport)
+                "222-223@65y-rxx-djv", # (Walmart in Albany, NY)
+                ] 
+            # returns pandas dataframe
+            df = graph.places(placekeys, columns="*")
+        
+        Datasets
+        ========
+        * CORE PLACES
+        
+        Reliable POI For Accuracy In Your Data Models.
+        With global coverage for any brand you request, our Core dataset provides high quality data for the POI you care about.
+        
+        * GEOMETRY
+        
+        Machine Generated, Human Verified Building Footprint Polygons.
+        SafeGraph Geometry allows data leaders to understand POI footprints with spatial hierarchy metadata.
+        
+        * PATTERNS
+        
+        Understand Consumer Behavior With Verified Foot Traffic Data.
+        Aggregate foot fall data to either specific POIs or to Census Block Groups (CBGs) with SafeGraph Patterns.
+        
+        Examples
+        ========
+        * places
+        * search
+        * place_by_name
+Keywords: api graphql safegraph gql safegraph-api
+Platform: any
+Classifier: Intended Audience :: Science/Research
+Classifier: Topic :: Software Development :: Libraries
+Classifier: Programming Language :: Python :: 3
+Classifier: Programming Language :: Python :: 3.6
+Classifier: Programming Language :: Python :: 3.7
+Classifier: Programming Language :: Python :: 3.8
+Classifier: Programming Language :: Python :: 3.9
+Classifier: Programming Language :: Python :: Implementation :: PyPy
+Description-Content-Type: text/x-rst
