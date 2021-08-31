@@ -136,6 +136,10 @@ class HTTP_Client:
         self.df = pd.DataFrame.from_dict(data_frame)
         self.__change_value_types_pandas()
 
+    def __lengthCheck__(self, data_frame):
+        if len(data_frame) < 1:
+            raise safeGraphError("Your search returned no results.")
+
     def places(self, placekeys, columns, return_type="pandas"):
         """
             :param list placekeys:          Unique Placekey ID/IDs inside an array
@@ -165,6 +169,7 @@ class HTTP_Client:
             data_frame.append(dict_)
 
         # adjustments
+        # self.__lengthCheck__(data_frame) # not working in this function
         self.__adjustments(data_frame)
 
         if self.return_type == "pandas":
@@ -218,6 +223,7 @@ class HTTP_Client:
         data_frame.append(dict_)
 
         # adjustments
+        # self.__lengthCheck__(data_frame) # not working in this function
         self.__adjustments(data_frame)
 
         if self.return_type == "pandas":
@@ -305,6 +311,7 @@ class HTTP_Client:
             data_frame.append(dict_)
 
         # adjustments
+        self.__lengthCheck__(data_frame)
         self.__adjustments(data_frame)
 
         if self.return_type == "pandas":

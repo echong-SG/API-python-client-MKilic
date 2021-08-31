@@ -39,8 +39,15 @@ def test_search():
         max_results=70, after_result_number=10, columns="safegraph_core.*", return_type="pandas")) == df_type
     assert type(safe_graph.search( brand = "starbucks", brand_id = None, naics_code = None, phone_number = None, street_address = None, city = None, region = None, postal_code = None, iso_country_code = None, 
         max_results=55, after_result_number=15, columns="safegraph_core.*", return_type="list")) == list
+    
     naics_code = "445120"
     assert type(safe_graph.search(columns = 'safegraph_core.*', naics_code = naics_code)) == df_type
+
+    try:
+        city = 'fsahfsadhfsadkjfsadjf'
+        safe_graph.search(columns = ['safegraph_core.*'], city = city)
+    except Exception as e:
+        assert type(e) == client.safeGraphError
 
 def test_get_place_by_locatian_name_address():
     assert type(safe_graph.place_by_name(
