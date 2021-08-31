@@ -28,7 +28,7 @@ setup(
         "Programming Language :: Python :: Implementation :: PyPy",
     ],
     keywords="api graphql safegraph gql safegraph-api",
-    packages=find_packages(include=['safegraphql'], exclude=['apiKey.txt']),
+    packages=find_packages(include=['safegraphql']),
     install_requires=[
         # "graphql-core>=2.3.2",
         # "yarl>=1.6,<2.0",

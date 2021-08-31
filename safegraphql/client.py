@@ -48,11 +48,12 @@ class HTTP_Client:
 
     def save(self, path="__default__", return_type="__default__"):
         """
-            :param str path:                location of the file e.g: "results.csv"
+            :param str path:                 (optional) location of the file e.g: "results.csv"
                 saves as a .json file if return_type was "list" 
                 saves as a .csv file if return_type was "pandas"
                 if path is not given saves to current location as results.csv or results.json
-            :param str return_type:          return type of the saved format by default last return format
+            :param str return_type:          (optional) pandas or list 
+                return type of the saved format by default last return format
         """
         if return_type == "__default__":
             return_type = self.return_type
@@ -143,9 +144,11 @@ class HTTP_Client:
     def places(self, placekeys, columns, return_type="pandas"):
         """
             :param list placekeys:          Unique Placekey ID/IDs inside an array
-                                            [ a single placekey string or a list of placekeys are both acceptable ]
-            :param str return_type:         Desired return type ether "pandas" or "list"
-            :param list/str columns:            * as string for all or desired column(s) in a [list]
+                [ a single placekey string or a list of placekeys are both acceptable ]
+            :param str return_type:         (optional) pandas or list
+                default -> pandas
+            :param columns:                 list or str 
+                "*" as string for all or desired column(s) in a [list]
             :return:                        The data of given placekeys in return_type
             :rtype:                         pandas.DataFrame or dict
         """
@@ -186,9 +189,10 @@ class HTTP_Client:
             :param str city:                city of the desidred place
             :param str region:              region of the desidred place
             :param str iso_country_code:    iso_country_code of the desidred place
-            :param list/str columns:        * as string for all or desired column(s) in a [list]
-            :param str return_type:         Desired return type ether "pandas" or "list"
-                                                default -> "pandas"
+            :param columns:                 list or str 
+                "*" as string for all or desired column(s) in a [list]
+            :param str return_type:         (optional) pandas or list
+                default -> pandas
             :return:                        The data of given placekey in return_type
             :rtype:                         pandas.DataFrame or dict
         """
@@ -246,6 +250,8 @@ class HTTP_Client:
         after_result_number=0,
         return_type="pandas"):
         """
+            :param columns:                 list or str 
+                "*" as string for all or desired column(s) in a [list]
             :param str brand:               brand for searching query
             :param str brand_id:            brand_id for searching query
             :param str naics_code:          naics_code for searching query
@@ -255,9 +261,10 @@ class HTTP_Client:
             :param str region:              region of the desidred place
             :param str postal_code:         postal_code of the desidred place
             :param str iso_country_code:    iso_country_code of the desidred place
-            :param list/str columns:        * as string for all or desired column(s) in a [list]
-            :param str return_type:         Desired return type ether "pandas" or "list"
-                                                default -> "pandas"
+            :param int max_results:         (optional) how many result required
+                default -> 20
+            :param str return_type:         (optional) pandas or list
+                default -> pandas
             :return:                        The data of given placekey in return_type
             :rtype:                         pandas.DataFrame or dict
 
