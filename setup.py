@@ -4,16 +4,16 @@ import os
 DIRECTORY = os.path.dirname(__file__)
 
 #REQUIREMENTS = open(os.path.join(DIRECTORY, "REQUIREMENTS.txt")).read().split()
-VERSION = open(os.path.join(DIRECTORY, "safegraph_ql", "__version__.py")).read()
+VERSION = open(os.path.join(DIRECTORY, "safegraphql", "__version__.py")).read()
 READ_ME = open(os.path.join(DIRECTORY, "README.rst")).read()
 
 setup(
-    name='safegraph_ql',
+    name='safegraphQL',
     version=VERSION,
     description='graphQL API of safegraph.com using Python functions',
     long_description=READ_ME,
     long_description_content_type="text/x-rst",
-    url="https://github.com/echong-SG/API-python-client-MKilic",
+    url="https://github.com/mirkan1/PI-python-client-MKilic",
     author="Renas Mirkan Kilic",
     author_email="mirkanbaba1@gmail.com",
     license='MIT',

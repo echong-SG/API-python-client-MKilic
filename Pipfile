@@ -4,7 +4,7 @@ verify_ssl = true
 name = "pypi"
 
 [packages]
-safegraph-ql = {editable = true, path = "."}
+safegraphql = {editable = true, path = "."}
 
 [dev-packages]
 pytest = "==4.4.1"

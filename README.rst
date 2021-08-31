@@ -1,5 +1,5 @@
 ============
-safegraph_ql
+safegraphQL
 ============
 .. image:: https://github.com/datamade/census/workflows/Python%20package/badge.svg
 
@@ -9,7 +9,7 @@ Installation
 ============
 ::
 
-    pip install safegraph_ql
+    pip install safegraphQL
 
 Usage
 =====
@@ -17,7 +17,7 @@ First, get yourself a `SafeGraph API key <https://shop.safegraph.com/api>`_.
 
 ::
 
-    from safegraph_ql import client
+    from safegraphql import client
     graph = client.HTTP_Client("MY_API_KEY")
     placekeys = [
         "zzw-222@8fy-fjg-b8v", # (Disney World)

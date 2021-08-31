@@ -1,7 +1,7 @@
-from safegraph_ql import client
+from safegraphql import client
 import pandas as pd
 import random
-from safegraph_ql.types import __PATTERNS__
+from safegraphql.types import __PATTERNS__
 
 df_type = type(pd.DataFrame())
 try:
