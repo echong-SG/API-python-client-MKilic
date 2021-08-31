@@ -9,6 +9,7 @@ try:
 except Exception as e:
     print("create file apiKey.txt and put your api key from https://shop.safegraph.com/api inside")
     raise e
+    
 safe_graph = client.HTTP_Client(apiKey)
 
 arr = []
@@ -38,6 +39,8 @@ def test_search():
         max_results=70, after_result_number=10, columns="safegraph_core.*", return_type="pandas")) == df_type
     assert type(safe_graph.search( brand = "starbucks", brand_id = None, naics_code = None, phone_number = None, street_address = None, city = None, region = None, postal_code = None, iso_country_code = None, 
         max_results=55, after_result_number=15, columns="safegraph_core.*", return_type="list")) == list
+    naics_code = "445120"
+    assert type(safe_graph.search(columns = 'safegraph_core.*', naics_code = naics_code)) == df_type
 
 def test_get_place_by_locatian_name_address():
     assert type(safe_graph.place_by_name(
@@ -73,11 +76,11 @@ def test_places():
         assert(type(e) == ValueError)
     assert type(safe_graph.places(placekeys, columns=random.sample(arr,random.randint(1, len(arr))), return_type="list")) == list
     assert type(safe_graph.places(placekeys, columns=random.sample(arr,random.randint(1, len(arr))), return_type="pandas")) == df_type
-    assert type(safe_graph.places(placekeys, columns=random.sample(arr,random.randint(1, len(arr))), return_type="list")) == list
-    assert type(safe_graph.places(placekeys, columns=random.sample(arr,random.randint(1, len(arr))), return_type="pandas")) == df_type
-    assert type(safe_graph.places(placekeys, columns=random.sample(arr,random.randint(1, len(arr))), return_type="list")) == list
-    assert type(safe_graph.places(placekeys, columns=random.sample(arr,random.randint(1, len(arr))), return_type="pandas")) == df_type
-    assert type(safe_graph.places(placekeys, columns=random.sample(arr,random.randint(1, len(arr))), return_type="list")) == list
+    # assert type(safe_graph.places(placekeys, columns=random.sample(arr,random.randint(1, len(arr))), return_type="list")) == list
+    # assert type(safe_graph.places(placekeys, columns=random.sample(arr,random.randint(1, len(arr))), return_type="pandas")) == df_type
+    # assert type(safe_graph.places(placekeys, columns=random.sample(arr,random.randint(1, len(arr))), return_type="list")) == list
+    # assert type(safe_graph.places(placekeys, columns=random.sample(arr,random.randint(1, len(arr))), return_type="pandas")) == df_type
+    # assert type(safe_graph.places(placekeys, columns=random.sample(arr,random.randint(1, len(arr))), return_type="list")) == list
 
 def test_null_cases():
     null_check = [

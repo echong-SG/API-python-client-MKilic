@@ -261,10 +261,10 @@ class HTTP_Client:
         params = f"""
 {(lambda x,y: f' {x}: "{y}" ' if y!=None else "")("brand", brand)}
 {(lambda x,y: f' {x}: "{y}" ' if y!=None else "")("brand_id", brand_id)}
-{(lambda x,y: f' {x}: {y} ' if y!=None else "")("naics_code", naics_code)}
+{(lambda x,y: f' {x}: {int(y)} ' if y!=None else "")("naics_code", naics_code)}
+{(lambda x,y: f' {x}: "{y}" ' if y!=None else "")("phone_number", phone_number)}
 """
         address = f""" address: {{
-{(lambda x,y: f' {x}: "{y}" ' if y!=None else "")("phone_number", phone_number)}
 {(lambda x,y: f' {x}: "{y}" ' if y!=None else "")("street_address", street_address)}
 {(lambda x,y: f' {x}: "{y}" ' if y!=None else "")("city", city)}
 {(lambda x,y: f' {x}: "{y}" ' if y!=None else "")("region", region)}
