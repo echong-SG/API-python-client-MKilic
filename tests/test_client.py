@@ -80,7 +80,6 @@ def test_get_place_by_locatian_name_address():
 
 def test_places():  
     __dataset = ["safegraph_core.*", "safegraph_geometry.*", "safegraph_patterns.*"]
-    import pdb;pdb.set_trace()
     assert type(sgql_client.places(placekeys, columns="*", return_type="pandas")) == df_type
     assert type(sgql_client.places(placekeys, columns=[__dataset[0]], return_type="pandas")) == df_type
     assert type(sgql_client.places(placekeys, columns=random.sample(__dataset,random.randint(1, len(__dataset))), return_type="pandas")) == df_type
