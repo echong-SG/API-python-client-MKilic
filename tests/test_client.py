@@ -10,7 +10,7 @@ except Exception as e:
     print("create file apiKey.txt and put your api key from https://shop.safegraph.com/api inside")
     raise e
     
-safe_graph = client.HTTP_Client(apiKey)
+sgql_client = client.HTTP_Client(apiKey)
 
 arr = []
 banned_keys = ["__header__", "__footer__"]
@@ -25,32 +25,43 @@ placekeys = [
         "222-223@65y-rxx-djv", # (Walmart in Albany, NY)
         ] 
 
+def test_search_pagination():
+    city = "Philadelphia"
+    brand = "Starbucks"
+
+    brand_search_initial = sgql_client.search(columns = ['placekey'], brand = brand, city = city, max_results = 10, after_result_number = 0)
+    brand_search_pagination1 = sgql_client.search(columns = ['placekey'], brand = brand, city = city, max_results = 25, after_result_number = 0)
+    brand_search_pagination2 = sgql_client.search(columns = ['placekey'], brand = brand, city = city, max_results = 25, after_result_number = 10)
+
+    assert (set(brand_search_initial.placekey) == set(brand_search_pagination1.placekey).difference(brand_search_pagination2.placekey))
+
+
 def test_search(): 
     max_results = 20
-    test = safe_graph.search( brand = "starbucks", brand_id = None, naics_code = None, phone_number = None, street_address = None, city = None, region = None, postal_code = None, iso_country_code = None, 
+    test = sgql_client.search( brand = "starbucks", brand_id = None, naics_code = None, phone_number = None, street_address = None, city = None, region = None, postal_code = None, iso_country_code = None, 
         max_results=max_results, after_result_number=20, columns="safegraph_core.*", return_type="list")
     assert type(test) == list
     assert len(test) == max_results
-    assert type(safe_graph.search( brand = "starbucks", brand_id = None, naics_code = None, phone_number = None, street_address = None, city = None, region = None, postal_code = None, iso_country_code = None, 
+    assert type(sgql_client.search( brand = "starbucks", brand_id = None, naics_code = None, phone_number = None, street_address = None, city = None, region = None, postal_code = None, iso_country_code = None, 
         max_results=55, after_result_number=0, columns="safegraph_core.*", return_type="pandas")) == df_type
-    assert type(safe_graph.search( brand = "starbucks", brand_id = None, naics_code = None, phone_number = None, street_address = None, city = None, region = None, postal_code = None, iso_country_code = None, 
+    assert type(sgql_client.search( brand = "starbucks", brand_id = None, naics_code = None, phone_number = None, street_address = None, city = None, region = None, postal_code = None, iso_country_code = None, 
         max_results=55, after_result_number=5, columns="safegraph_core.*", return_type="pandas")) == df_type
-    assert type(safe_graph.search( brand = "starbucks", brand_id = None, naics_code = None, phone_number = None, street_address = None, city = None, region = None, postal_code = None, iso_country_code = None, 
+    assert type(sgql_client.search( brand = "starbucks", brand_id = None, naics_code = None, phone_number = None, street_address = None, city = None, region = None, postal_code = None, iso_country_code = None, 
         max_results=70, after_result_number=10, columns="safegraph_core.*", return_type="pandas")) == df_type
-    assert type(safe_graph.search( brand = "starbucks", brand_id = None, naics_code = None, phone_number = None, street_address = None, city = None, region = None, postal_code = None, iso_country_code = None, 
+    assert type(sgql_client.search( brand = "starbucks", brand_id = None, naics_code = None, phone_number = None, street_address = None, city = None, region = None, postal_code = None, iso_country_code = None, 
         max_results=55, after_result_number=15, columns="safegraph_core.*", return_type="list")) == list
     
     naics_code = "445120"
-    assert type(safe_graph.search(columns = 'safegraph_core.*', naics_code = naics_code)) == df_type
+    assert type(sgql_client.search(columns = 'safegraph_core.*', naics_code = naics_code)) == df_type
 
     try:
         city = 'fsahfsadhfsadkjfsadjf'
-        safe_graph.search(columns = ['safegraph_core.*'], city = city)
+        sgql_client.search(columns = ['safegraph_core.*'], city = city)
     except Exception as e:
         assert type(e) == client.safeGraphError
 
 def test_get_place_by_locatian_name_address():
-    assert type(safe_graph.place_by_name(
+    assert type(sgql_client.place_by_name(
         location_name= "Taco Bell", 
         street_address= "710 3rd St", 
         city= "San Francisco", 
@@ -58,7 +69,7 @@ def test_get_place_by_locatian_name_address():
         iso_country_code= "US",
         return_type="pandas",
         columns="*")) == df_type
-    assert type(safe_graph.place_by_name(
+    assert type(sgql_client.place_by_name(
         location_name= "Taco Bell", 
         street_address= "710 3rd St", 
         city= "San Francisco", 
@@ -69,25 +80,26 @@ def test_get_place_by_locatian_name_address():
 
 def test_places():  
     __dataset = ["safegraph_core.*", "safegraph_geometry.*", "safegraph_patterns.*"]
-    assert type(safe_graph.places(placekeys, columns="*", return_type="pandas")) == df_type
-    assert type(safe_graph.places(placekeys, columns=[__dataset[0]], return_type="pandas")) == df_type
-    assert type(safe_graph.places(placekeys, columns=random.sample(__dataset,random.randint(1, len(__dataset))), return_type="pandas")) == df_type
-    assert type(safe_graph.places(placekeys, columns=random.sample(__dataset,random.randint(1, len(__dataset))), return_type="pandas")) == df_type
+    import pdb;pdb.set_trace()
+    assert type(sgql_client.places(placekeys, columns="*", return_type="pandas")) == df_type
+    assert type(sgql_client.places(placekeys, columns=[__dataset[0]], return_type="pandas")) == df_type
+    assert type(sgql_client.places(placekeys, columns=random.sample(__dataset,random.randint(1, len(__dataset))), return_type="pandas")) == df_type
+    assert type(sgql_client.places(placekeys, columns=random.sample(__dataset,random.randint(1, len(__dataset))), return_type="pandas")) == df_type
     try:
-        safe_graph.places(placekeys, 
+        sgql_client.places(placekeys, 
         columns=
             ["fakes", "fake2"] + 
             random.sample(arr,random.randint(1, len(arr))), 
         return_type="pandas")
     except Exception as e:
         assert(type(e) == ValueError)
-    assert type(safe_graph.places(placekeys, columns=random.sample(arr,random.randint(1, len(arr))), return_type="list")) == list
-    assert type(safe_graph.places(placekeys, columns=random.sample(arr,random.randint(1, len(arr))), return_type="pandas")) == df_type
-    # assert type(safe_graph.places(placekeys, columns=random.sample(arr,random.randint(1, len(arr))), return_type="list")) == list
-    # assert type(safe_graph.places(placekeys, columns=random.sample(arr,random.randint(1, len(arr))), return_type="pandas")) == df_type
-    # assert type(safe_graph.places(placekeys, columns=random.sample(arr,random.randint(1, len(arr))), return_type="list")) == list
-    # assert type(safe_graph.places(placekeys, columns=random.sample(arr,random.randint(1, len(arr))), return_type="pandas")) == df_type
-    # assert type(safe_graph.places(placekeys, columns=random.sample(arr,random.randint(1, len(arr))), return_type="list")) == list
+    assert type(sgql_client.places(placekeys, columns=random.sample(arr,random.randint(1, len(arr))), return_type="list")) == list
+    assert type(sgql_client.places(placekeys, columns=random.sample(arr,random.randint(1, len(arr))), return_type="pandas")) == df_type
+    # assert type(sgql_client.places(placekeys, columns=random.sample(arr,random.randint(1, len(arr))), return_type="list")) == list
+    # assert type(sgql_client.places(placekeys, columns=random.sample(arr,random.randint(1, len(arr))), return_type="pandas")) == df_type
+    # assert type(sgql_client.places(placekeys, columns=random.sample(arr,random.randint(1, len(arr))), return_type="list")) == list
+    # assert type(sgql_client.places(placekeys, columns=random.sample(arr,random.randint(1, len(arr))), return_type="pandas")) == df_type
+    # assert type(sgql_client.places(placekeys, columns=random.sample(arr,random.randint(1, len(arr))), return_type="list")) == list
 
 def test_null_cases():
     null_check = [
@@ -127,7 +139,7 @@ def test_null_cases():
         "popularity_by_day",
         "device_type",
     ] 
-    df = safe_graph.places(placekeys, columns="*", return_type="pandas")
+    df = sgql_client.places(placekeys, columns="*", return_type="pandas")
     for i in null_check:
         assert(df[i].isnull().values.any() == False)
     for i in range(len(df)):
@@ -136,9 +148,9 @@ def test_null_cases():
 
 def test_save():
     # Read in the result of save() and make sure it matches the original dataframe.
-    df = safe_graph.places(placekeys, columns="*", return_type="pandas")
+    df = sgql_client.places(placekeys, columns="*", return_type="pandas")
     path = "results.csv"
-    safe_graph.save(path)
+    sgql_client.save(path)
     saved_df = pd.read_csv(path)
     # if same shape means same values
     assert(df.shape == saved_df.shape)
