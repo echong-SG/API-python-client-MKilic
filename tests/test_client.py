@@ -34,9 +34,17 @@ def test_search_pagination():
     brand_search_pagination2 = sgql_client.search(columns = ['placekey'], brand = brand, city = city, max_results = 25, after_result_number = 10)
     assert (set(brand_search_initial.placekey) == set(brand_search_pagination1.placekey).difference(brand_search_pagination2.placekey))
 
+def test_overlap():
+    city = "Philadelphia"
+    brand = "Starbucks"
+
+    brand_search_initial = sgql_client.search(columns = ['placekey'], brand = brand, city = city, max_results = 10, after_result_number = 0)
+    brand_search_pagination1 = sgql_client.search(columns = ['placekey'], brand = brand, city = city, max_results = 10, after_result_number = 10)
+    for i in range(len(brand_search_initial)):
+        assert brand_search_initial.loc[i].values[0] != brand_search_pagination1.loc[i].values[0]
 
 def test_search(): 
-    max_results = 150
+    max_results = 50
     # for loop len check
     for i in range(1, max_results, 2):
         test = sgql_client.search( brand = "starbucks", brand_id = None, naics_code = None, phone_number = None, street_address = None, city = None, region = None, postal_code = None, iso_country_code = None, 
