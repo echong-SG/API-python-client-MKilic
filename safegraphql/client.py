@@ -27,6 +27,7 @@ class HTTP_Client:
         )
         self.client = gql_Client(transport=self.transport, fetch_schema_from_transport=True)
         self.return_type = "pandas"
+        self.max_results = 20
 
     def __str__(self):
         return f"api url: {self.url} | apikey: {self.apikey}"
@@ -103,11 +104,16 @@ class HTTP_Client:
             for j in __PATTERNS__["safegraph_geometry"]:
                 query += __PATTERNS__['safegraph_geometry'][j] + " "
             data_type = ["safegraph_geometry"]
-        elif columns == "safegraph_patterns.*":
+        elif columns == "safegraph_monthly_patterns.*":
             # if all data from safegraph_patterns
-            for j in __PATTERNS__["safegraph_patterns"]:
-                query += __PATTERNS__['safegraph_patterns'][j] + " "
-            data_type = ["safegraph_patterns"]
+            for j in __PATTERNS__["safegraph_monthly_patterns"]:
+                query += __PATTERNS__['safegraph_monthly_patterns'][j] + " "
+            data_type = ["safegraph_monthly_patterns"]
+        elif columns == "safegraph_monthly_patterns.*":
+            # if all data from safegraph_patterns
+            for j in __PATTERNS__["safegraph_weekly_patterns"]:
+                query += __PATTERNS__['safegraph_weekly_patterns'][j] + " "
+            data_type = ["safegraph_weekly_patterns"]
         elif type(columns) != list:
             raise ValueError("""*** columns argument must to be a list or one of the following string: 
                 *, safegraph_core.*, safegraph_geometry.*, safegraph_patterns.*
@@ -141,7 +147,7 @@ class HTTP_Client:
         if len(data_frame) < 1:
             raise safeGraphError("Your search returned no results.")
 
-    def places(self, placekeys, columns, return_type="pandas"):
+    def batch_lookup(self, placekeys, columns, return_type="pandas"):
         """
             :param list placekeys:          Unique Placekey ID/IDs inside an array
                 [ a single placekey string or a list of placekeys are both acceptable ]
@@ -157,7 +163,7 @@ class HTTP_Client:
         dataset, data_type = self.__dataset__(columns)
         query = gql(
             f"""query($placekeys: [Placekey!]) {{
-                places(placekeys: $placekeys) {{
+                batch_lookup(placekeys: $placekeys) {{
                     placekey
                 {dataset}
                 }}
@@ -165,7 +171,7 @@ class HTTP_Client:
         ) 
         result = self.client.execute(query, variable_values=params)
         data_frame = []
-        for place in result['places']:
+        for place in result['batch_lookup']:
             dict_ = {}
             for j in data_type:
                 dict_.update(place[j])
@@ -182,13 +188,13 @@ class HTTP_Client:
         else:
             raise safeGraphError(f'return_type "{return_type}" does not exist')
 
-    def place_by_name(self, location_name, street_address, city, region, iso_country_code, columns, return_type="pandas"):
+    def lookup_by_name(self, location_name, street_address, city, region, iso_country_code, columns, return_type="pandas"):
         """
-            :param str location_name:       location_name of the desidred place
-            :param str street_address:      street_address of the desidred place
-            :param str city:                city of the desidred place
-            :param str region:              region of the desidred place
-            :param str iso_country_code:    iso_country_code of the desidred place
+            :param str location_name:       location_name of the desidred lookup
+            :param str street_address:      street_address of the desidred lookup
+            :param str city:                city of the desidred lookup
+            :param str region:              region of the desidred lookup
+            :param str iso_country_code:    iso_country_code of the desidred lookup
             :param columns:                 list or str 
                 "*" as string for all or desired column(s) in a [list]
             :param str return_type:         (optional) pandas or list
@@ -207,7 +213,7 @@ class HTTP_Client:
         dataset, data_type = self.__dataset__(columns)
         query = gql(
             f"""query ($location_name: String!, $street_address: String!, $city: String!, $region: String!, $iso_country_code: String!) {{
-                place(query: {{
+                lookup(query: {{
                         location_name: $location_name, 
                         street_address: $street_address, 
                         city: $city, 
@@ -223,7 +229,7 @@ class HTTP_Client:
         data_frame = []
         dict_ = {}
         for j in data_type:
-            dict_.update(result['place'][j])
+            dict_.update(result['lookup'][j])
         data_frame.append(dict_)
 
         # adjustments
@@ -237,10 +243,12 @@ class HTTP_Client:
         else:
             raise safeGraphError(f'return_type "{return_type}" does not exist')
 
-    def __chunks__(self, lst, n):
-     """Yield successive n-sized chunks from lst."""
-     for i in range(0, len(lst), n):
-         yield lst[i:i + n]
+    def __chunks(self):
+        """Yield successive n-sized chunks from self.max_results."""
+        lst = [i for i in range(self.max_results)]
+        n = 20
+        for i in range(0, len(lst), n):
+            yield lst[i:i + n]
 
     def search(self, columns, 
         brand = None, brand_id = None, naics_code = None, 
@@ -267,9 +275,12 @@ class HTTP_Client:
                 default -> pandas
             :return:                        The data of given placekey in return_type
             :rtype:                         pandas.DataFrame or dict
-
-        """
-        self.return_type = return_type
+        """                               ############ 
+        #################################################       |```|  /\   |````|
+        self.max_results = max_results            ##################    |\``  / _\  |    |
+            ##################    | \  /    \ |____|__
+        #################################################   
+        self.return_type = return_type    ############
         dataset, data_type = self.__dataset__(columns)
         params = f"""
 {(lambda x,y: f' {x}: "{y}" ' if y!=None else "")("brand", brand)}
@@ -288,9 +299,10 @@ class HTTP_Client:
             params+=address
         after = 0
         output = []
-        chunks = self.__chunks__([i for i in range(max_results)], 20)
+        chunks = self.__chunks()
         for i in chunks:
             first = len(i)
+            print(f"{first=}")
             query = gql(
                 f"""query {{
                     search(first: {first} after: {after+after_result_number} filter: {{
@@ -304,11 +316,6 @@ class HTTP_Client:
             result = self.client.execute(query)
             output+=result['search']
             after += first
-                        # print(f"{max_results=},{len(output)=}")
-                        # arr = []
-                        # for i in output: 
-                        #     if i['placekey'] not in arr:
-                        #         arr.append(i['placekey'])
         data_frame = []
         for out in output:
             dict_ = {}
@@ -316,6 +323,7 @@ class HTTP_Client:
                 dict_.update(out[j])
             dict_['placekey'] = out["placekey"]
             data_frame.append(dict_)
+        len(f"{data_frame=}")
 
         # adjustments
         self.__lengthCheck__(data_frame)
@@ -327,3 +335,30 @@ class HTTP_Client:
             return self.lst
         else:
             raise safeGraphError(f'return_type "{return_type}" does not exist')
+
+    def search_within_radius(self,):
+        # * Argument `keyset_placekey` was added to `Query.search_within_radius` field
+        query = gql(
+            f"""query {{
+                search_within_radius(first: {first} after: {after+after_result_number} filter: {{
+                    {params}
+                    }}) {{ 
+                    placekey 
+                    {dataset}
+                }}
+            }}"""
+        )
+
+    def fuzzy_search_by_city(self,):
+        #  * Argument `limit` was added to `Query.fuzzy_search_by_city` field
+        query = gql(
+            f"""query {{
+                fuzzy_search_by_city(first: {first} after: {after+after_result_number} filter: {{
+                    {params}
+                    }}) {{ 
+                    placekey 
+                    {dataset}
+                }}
+            }}"""
+        )
+
