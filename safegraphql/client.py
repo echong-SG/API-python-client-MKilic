@@ -4,6 +4,7 @@ from gql import gql
 from gql import Client as gql_Client
 from gql.transport.requests import RequestsHTTPTransport
 from .types import __VALUE_TYPES__, DATASET, INNER_DATASET, __PATTERNS__
+from requests.exceptions import *  
 ### DEBUGGER
 # import pprint
 # printy =  pprint.PrettyPrinter(indent=4).pprint
@@ -28,6 +29,7 @@ class HTTP_Client:
         self.client = gql_Client(transport=self.transport, fetch_schema_from_transport=True)
         self.return_type = "pandas"
         self.max_results = 20
+        self.errors = []
 
     def __str__(self):
         return f"api url: {self.url} | apikey: {self.apikey}"
@@ -147,6 +149,13 @@ class HTTP_Client:
         if len(data_frame) < 1:
             raise safeGraphError("Your search returned no results.")
 
+    def __error_check(self, after_result_number=None):
+        if len(self.errors) > 0:
+            print(f'results {" and ".join([i for i in self.errors])} failed and must be re-queried')
+        if after_result_number != None:
+            print(f"{after_result_number=}")
+        self.errors = []
+
     def batch_lookup(self, placekeys, columns, return_type="pandas"):
         """
             :param list placekeys:          Unique Placekey ID/IDs inside an array
@@ -251,9 +260,9 @@ class HTTP_Client:
             yield lst[i:i + n]
 
     def search(self, columns, 
-        brand = None, brand_id = None, naics_code = None, 
+        brand = None, brand_id = None, naics_code = None, phone_number = None,
         # address with following sub-fields
-        phone_number = None, street_address = None, city = None, region = None, postal_code = None, iso_country_code = None,
+        street_address = None, city = None, region = None, postal_code = None, iso_country_code = None,
         max_results=20,
         after_result_number=0,
         return_type="pandas"):
@@ -276,11 +285,12 @@ class HTTP_Client:
             :return:                        The data of given placekey in return_type
             :rtype:                         pandas.DataFrame or dict
         """                               ############ 
-        #################################################       |```|  /\   |````|
-        self.max_results = max_results            ##################    |\``  / _\  |    |
-            ##################    | \  /    \ |____|__
+        #################################################        |```|  /\   |````|
+        self.max_results = max_results    ##################     |\``  / _\  |    |
+        self.return_type = return_type    ###################    | \  /    \ |____|__
+        # self.errors = []                #################
         #################################################   
-        self.return_type = return_type    ############
+                                          ############
         dataset, data_type = self.__dataset__(columns)
         params = f"""
 {(lambda x,y: f' {x}: "{y}" ' if y!=None else "")("brand", brand)}
@@ -302,7 +312,6 @@ class HTTP_Client:
         chunks = self.__chunks()
         for i in chunks:
             first = len(i)
-            print(f"{first=}")
             query = gql(
                 f"""query {{
                     search(first: {first} after: {after+after_result_number} filter: {{
@@ -313,7 +322,12 @@ class HTTP_Client:
                     }}
                 }}"""
             )
-            result = self.client.execute(query)
+            try:
+                result = self.client.execute(query)
+            except Exception as e:
+                #if type(e) == ConnectionError:
+                result = {'search': []}
+                self.errors.append(f"{after+after_result_number}-{first+after+after_result_number}")
             output+=result['search']
             after += first
         data_frame = []
@@ -323,11 +337,13 @@ class HTTP_Client:
                 dict_.update(out[j])
             dict_['placekey'] = out["placekey"]
             data_frame.append(dict_)
-        len(f"{data_frame=}")
+        # DEBUGGER
+        # len(f"{data_frame=}")
 
         # adjustments
         self.__lengthCheck__(data_frame)
         self.__adjustments(data_frame)
+        self.__error_check(after_result_number)
 
         if self.return_type == "pandas":
             return self.df
