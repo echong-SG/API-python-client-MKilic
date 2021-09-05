@@ -10,7 +10,9 @@ except Exception as e:
     print("create file apiKey.txt and put your api key from https://shop.safegraph.com/api inside")
     raise e
     
+
 sgql_client = client.HTTP_Client(apiKey)
+
 
 arr = []
 banned_keys = ["__header__", "__footer__"]
@@ -25,19 +27,34 @@ placekeys = [
         "222-223@65y-rxx-djv", # (Walmart in Albany, NY)
         ] 
 
+def test_safegraph_weekly_patterns():
+    sgql_client.date = ["2021-08-05", "2021-08-12", "2021-08-19"]
+    sgql_client.patterns_version = "weekly"
+    df = sgql_client.batch_lookup(placekeys, columns=["safegraph_brand_ids", "date_range_start", "visits_by_day"], return_type="pandas") 
+    assert type(df) == df_type
+    df = sgql_client.batch_lookup(placekeys, columns="safegraph_weekly_patterns.*", return_type="pandas")
+    assert type(df) == df_type
+    df = sgql_client.batch_lookup(placekeys, columns="*", date="2021-01-01", patterns_version="weekly", return_type="pandas")
+    assert type(df) == df_type
+    columns = ['related_same_month_brand', 'visits_by_each_hour', "location_name", "longitude", "date_range_start"]
+    try:
+        df = sgql_client.batch_lookup(placekeys, columns=columns, return_type="pandas")
+    except Exception as e:
+        assert type(e) == ValueError
+
 
 def test_search(): 
-    max_results = 150
-    # for loop len check
-    for i in reversed(range(1, max_results, 2)):
-        test = sgql_client.search( brand = "starbucks", brand_id = None, naics_code = None, phone_number = None, street_address = None, city = None, region = None, postal_code = None, iso_country_code = None, 
-        max_results=i, after_result_number=i, columns="safegraph_core.*", return_type="list")
-        assert type(test) == list
-        assert len(test) == i
-    assert type(sgql_client.search( brand = "starbucks", brand_id = None, naics_code = None, phone_number = None, street_address = None, city = None, region = None, postal_code = None, iso_country_code = None, 
-        max_results=55, after_result_number=0, columns="safegraph_core.*", return_type="pandas")) == df_type
-    assert type(sgql_client.search( brand = "starbucks", brand_id = None, naics_code = None, phone_number = None, street_address = None, city = None, region = None, postal_code = None, iso_country_code = None, 
-        max_results=55, after_result_number=5, columns="safegraph_core.*", return_type="pandas")) == df_type
+    # max_results = 150
+    # # for loop len check
+    # for i in reversed(range(1, max_results, 5)):
+    #     test = sgql_client.search( brand = "starbucks", brand_id = None, naics_code = None, phone_number = None, street_address = None, city = None, region = None, postal_code = None, iso_country_code = None, 
+    #     max_results=i, after_result_number=i, columns="safegraph_core.*", return_type="list")
+    #     assert type(test) == list
+    #     assert len(test) == i
+    # assert type(sgql_client.search( brand = "starbucks", brand_id = None, naics_code = None, phone_number = None, street_address = None, city = None, region = None, postal_code = None, iso_country_code = None, 
+    #     max_results=55, after_result_number=0, columns="safegraph_core.*", return_type="pandas")) == df_type
+    # assert type(sgql_client.search( brand = "starbucks", brand_id = None, naics_code = None, phone_number = None, street_address = None, city = None, region = None, postal_code = None, iso_country_code = None, 
+    #     max_results=55, after_result_number=5, columns="safegraph_core.*", return_type="pandas")) == df_type
     assert type(sgql_client.search( brand = "starbucks", brand_id = None, naics_code = None, phone_number = None, street_address = None, city = None, region = None, postal_code = None, iso_country_code = None, 
         max_results=70, after_result_number=10, columns="safegraph_core.*", return_type="pandas")) == df_type
     assert type(sgql_client.search( brand = "starbucks", brand_id = None, naics_code = None, phone_number = None, street_address = None, city = None, region = None, postal_code = None, iso_country_code = None, 
@@ -89,11 +106,23 @@ def test_get_place_by_locatian_name_address():
         columns="*")) == list
 
 def test_batch_lookup():  
-    __dataset = ["safegraph_core.*", "safegraph_geometry.*"] # "safegraph_weekly_patterns.*", "safegraph_monthly_patterns.*"] # for dataset column functionality
+    __dataset = ["safegraph_core.*", "safegraph_geometry.*", "safegraph_monthly_patterns.*"] # "safegraph_weekly_patterns.*"] # for dataset column functionality
+    #import pdb;pdb.set_trace()
     assert type(sgql_client.batch_lookup(placekeys, columns="*", return_type="pandas")) == df_type
     assert type(sgql_client.batch_lookup(placekeys, columns=[__dataset[0]], return_type="pandas")) == df_type
-    assert type(sgql_client.batch_lookup(placekeys, columns=random.sample(__dataset,random.randint(1, len(__dataset))), return_type="pandas")) == df_type
-    assert type(sgql_client.batch_lookup(placekeys, columns=random.sample(__dataset,random.randint(1, len(__dataset))), return_type="pandas")) == df_type
+    argv_ = []
+    for i in range(random.randint(1, len(__dataset))):
+        inside = random.choice(__dataset)
+        if inside not in argv_:
+            argv_.append(inside)
+    assert type(sgql_client.batch_lookup(placekeys, columns=argv_, return_type="pandas")) == df_type
+    argv_ = []
+    for i in range(random.randint(1, len(__dataset))):
+        inside = random.choice(__dataset)
+        if inside not in argv_:
+            argv_.append(inside)
+    assert type(sgql_client.batch_lookup(placekeys, columns=argv_, return_type="pandas")) == df_type
+
     try:
         sgql_client.batch_lookup(placekeys, 
         columns=
@@ -102,8 +131,27 @@ def test_batch_lookup():
         return_type="pandas")
     except Exception as e:
         assert(type(e) == ValueError)
-    assert type(sgql_client.batch_lookup(placekeys, columns=random.sample(arr,random.randint(1, len(arr))), return_type="list")) == list
-    assert type(sgql_client.batch_lookup(placekeys, columns=random.sample(arr,random.randint(1, len(arr))), return_type="pandas")) == df_type
+
+
+    argv_ = []
+    for i in range(random.randint(1, len(arr))):
+        inside = random.choice(arr)
+        if inside not in argv_:
+            argv_.append(inside)
+    try:
+        assert type(sgql_client.batch_lookup(placekeys, columns=argv_, return_type="list")) == list
+    except Exception as e:
+        assert type(e) == ValueError
+    argv_ = []
+    for i in range(random.randint(1, len(arr))):
+        inside = random.choice(arr)
+        if inside not in argv_:
+            argv_.append(inside)
+    try:
+        assert type(sgql_client.batch_lookup(placekeys, columns=argv_, return_type="pandas")) == df_type
+    except Exception as e:
+        assert type(e) == ValueError
+
     # assert type(sgql_client.batch_lookup(placekeys, columns=random.sample(arr,random.randint(1, len(arr))), return_type="list")) == list
     # assert type(sgql_client.batch_lookup(placekeys, columns=random.sample(arr,random.randint(1, len(arr))), return_type="pandas")) == df_type
     # assert type(sgql_client.batch_lookup(placekeys, columns=random.sample(arr,random.randint(1, len(arr))), return_type="list")) == list
