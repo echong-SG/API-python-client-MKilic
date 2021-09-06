@@ -51,22 +51,30 @@ class HTTP_Client:
         if type(value) == list:
             self._date = []
             for i in range(len(value)):
-                date_obj = datetime.strptime(value[i], '%Y-%m-%d')
-                start_of_week = date_obj - timedelta(days=date_obj.weekday())
+                d1 = datetime.strptime(value[i], '%Y-%m-%d')
+                start_of_week = d1 - timedelta(days=d1.weekday())
                 self._date.append(start_of_week.strftime("%Y-%m-%d"))
             self._date = list(set(self._date)) # drops duplicates
             self._date.sort()
         if type(value) == str:
-            date_obj = datetime.strptime(value, '%Y-%m-%d')
-            start_of_week = date_obj - timedelta(days=date_obj.weekday())
+            d1 = datetime.strptime(value, '%Y-%m-%d')
+            start_of_week = d1 - timedelta(days=d1.weekday())
             self._date = [start_of_week.strftime("%Y-%m-%d")]
         if type(value) == dict:
             # XXX
             # TODO
-            date_range_start = value['date_range_start']
-            date_range_end = value['date_range_end']
-            self._date = ["2018-01-01"]
-            # import pdb;pdb.set_trace()
+            self._date = []
+            import pdb;pdb.set_trace()
+            d1 = datetime.strptime(value['date_range_start'], "%Y-%m-%d")
+            d2 = datetime.strptime(value['date_range_end'], "%Y-%m-%d")
+            start_of_week1 = d1 - timedelta(days=d1.weekday())
+            start_of_week2 = d2 - timedelta(days=d2.weekday())
+            week_loop = int(abs((start_of_week1 - start_of_week2).days / 7))  
+            for i in range(1, week_loop+1):
+                print(f"{start_of_week1=},{(start_of_week1 + timedelta(days=7*i))=},{i=}")
+                self._date.append((start_of_week1 + timedelta(days=7*i)).strftime("%Y-%m-%d"))
+            #self._date = ["2018-01-01"]
+            import pdb;pdb.set_trace()
             pass
         # date_str = '2018-01-14'
         #end_of_week = start_of_week + timedelta(days=6)
@@ -127,8 +135,6 @@ class HTTP_Client:
             raise ValueError(f'''
                 Invalid column name(s): "{'", "'.join(invalid_values)}"
             ''')
-        # self'e kaydet yap magicigini
-        # XXX
         WM_dict = {el:0 for el in columns}
         represent_dict = {}
         WM_arr = ["safegraph_monthly_patterns", "safegraph_weekly_patterns"]

@@ -27,6 +27,7 @@ placekeys = [
         "222-223@65y-rxx-djv", # (Walmart in Albany, NY)
         ] 
 
+#sgql_client.date = {"date_range_start": "2021-01-05", "date_range_end": "2021-08-01"}
 sgql_client.date = ["2021-08-05", "2021-08-12", "2021-08-19"]
 sgql_client.patterns_version = "weekly"
 df = sgql_client.batch_lookup(placekeys, columns=["safegraph_brand_ids", "date_range_start", "date_range_end", "visits_by_day"], return_type="pandas") 
