@@ -2,6 +2,8 @@ from safegraphql import client
 import pandas as pd
 import random
 from safegraphql.types import __PATTERNS__
+import pprint
+printy =  pprint.PrettyPrinter(indent=4).pprint
 
 df_type = type(pd.DataFrame())
 try:
@@ -9,7 +11,7 @@ try:
 except Exception as e:
     print("create file apiKey.txt and put your api key from https://shop.safegraph.com/api inside")
     raise e
-    
+
 
 sgql_client = client.HTTP_Client(apiKey)
 
@@ -25,19 +27,40 @@ placekeys = [
         "zzw-222@8fy-fjg-b8v", # (Disney World)
         "zzy-227@5sb-8cw-pjv", # (O'Hare Airport)
         "222-223@65y-rxx-djv", # (Walmart in Albany, NY)
-        ] 
+        ]
 
-#sgql_client.date = {"date_range_start": "2021-01-05", "date_range_end": "2021-08-01"}
-sgql_client.date = ["2021-08-05", "2021-08-12", "2021-08-19"]
-sgql_client.patterns_version = "weekly"
-df = sgql_client.batch_lookup(placekeys, columns=["safegraph_brand_ids", "date_range_start", "date_range_end", "visits_by_day"], return_type="pandas") 
+sgql_client.date = {"date_range_start": "2021-05-05", "date_range_end": "2021-08-01"}
+# sgql_client.date = ["2021-08-05", "2021-08-12", "2021-08-19"]
+# print(sgql_client.date)
+# #sgql_client.patterns_version = "weekly"
+# df = sgql_client.batch_lookup(placekeys, columns=["safegraph_brand_ids", "date_range_start", "date_range_end", "visits_by_day"], return_type="pandas") 
+# sgql_client.save()
+# printy(df)
+# input('''batch_lookup: columns=["safegraph_brand_ids", "date_range_start", "date_range_end", "visits_by_day"] saved to results.csv, next dataframe?''') 
+# df = sgql_client.batch_lookup(placekeys, columns="safegraph_weekly_patterns.*", return_type="pandas")
+# sgql_client.save()
+# printy(df)
+# input('''batch_lookup: columns="safegraph_weekly_patterns.*" saved to results.csv, next dataframe?''')
+df = sgql_client.search( brand = "starbucks", brand_id = None, naics_code = None, phone_number = None, street_address = None, city = None, region = None, postal_code = None, iso_country_code = None, 
+        max_results=70, after_result_number=10, columns=["safegraph_core.*", "safegraph_weekly_patterns.*"], date=["2021-01-01", "2021-02-01"], patterns_version="weekly", return_type="pandas")
+printy(df)
 sgql_client.save()
-input('''columns=["safegraph_brand_ids", "date_range_start", "date_range_end", "visits_by_day"] saved to results.csv, next dataframe?''') 
-df = sgql_client.batch_lookup(placekeys, columns="safegraph_weekly_patterns.*", return_type="pandas")
+input('''search: columns=["safegraph_core.*", "safegraph_weekly_patterns.*"], patterns_version="weekly", date="2021-01-01" case, saved to csv''')
+df = sgql_client.lookup_by_name(
+        location_name= "Taco Bell", 
+        street_address= "710 3rd St", 
+        city= "San Francisco", 
+        region= "CA", 
+        iso_country_code= "US",
+        return_type="pandas",
+        columns="*")
+printy(df)
 sgql_client.save()
-input('''columns="safegraph_weekly_patterns.*" saved to results.csv, next dataframe?''')
+input('''lookup_by_name: case saved to results.csv, next dataframe? next case is error case''')
 df = sgql_client.batch_lookup(placekeys, columns="*", date="2021-01-01", patterns_version="weekly", return_type="pandas")
 sgql_client.save()
+printy(df)
+input('''batch_lookup: columns="*" case saved to results.csv, next dataframe? next case is error case''')
 input('''manual case [columns="*", date="2021-01-01", patterns_version="weekly"] saved to results.csv, next dataframe? next case is error case''')
 columns = ['related_same_month_brand', 'visits_by_each_hour', "location_name", "longitude", "date_range_start"]
 try:

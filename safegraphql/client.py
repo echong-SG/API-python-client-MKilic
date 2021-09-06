@@ -32,9 +32,10 @@ class HTTP_Client:
         self.return_type = "pandas"
         self.max_results = 20
         self.errors = []
-        self._date = ["2018-01-01"] # datetime.now().strftime("%Y-%m-%d")
+        self._date = [datetime.now().strftime("%Y-%m-%d")]
         self.patterns_version = "monthly"
         self.WM_dict = []
+        self._date_min_ = datetime.strptime("2018-01-01", '%Y-%m-%d')
 
     def __str__(self):
         return f"api url: {self.url} | apikey: {self.apikey}"
@@ -48,37 +49,33 @@ class HTTP_Client:
         self._round_date(value)
 
     def _round_date(self, value):
+        self._date = []
         if type(value) == list:
-            self._date = []
             for i in range(len(value)):
                 d1 = datetime.strptime(value[i], '%Y-%m-%d')
                 start_of_week = d1 - timedelta(days=d1.weekday())
+                if start_of_week < self._date_min_:
+                    raise safeGraphError(f'''*** DateTime {d1} cannot be smaller than {self._date_min_}''')
                 self._date.append(start_of_week.strftime("%Y-%m-%d"))
             self._date = list(set(self._date)) # drops duplicates
             self._date.sort()
         if type(value) == str:
             d1 = datetime.strptime(value, '%Y-%m-%d')
             start_of_week = d1 - timedelta(days=d1.weekday())
+            if start_of_week < self._date_min_:
+                raise safeGraphError(f'''*** DateTime {d1} cannot be smaller than {self._date_min_}''')
             self._date = [start_of_week.strftime("%Y-%m-%d")]
         if type(value) == dict:
-            # XXX
-            # TODO
-            self._date = []
-            import pdb;pdb.set_trace()
             d1 = datetime.strptime(value['date_range_start'], "%Y-%m-%d")
             d2 = datetime.strptime(value['date_range_end'], "%Y-%m-%d")
             start_of_week1 = d1 - timedelta(days=d1.weekday())
+            if start_of_week1 < self._date_min_:
+                raise safeGraphError(f'''*** DateTime {d1} cannot be smaller than {self._date_min_}''')
             start_of_week2 = d2 - timedelta(days=d2.weekday())
             week_loop = int(abs((start_of_week1 - start_of_week2).days / 7))  
             for i in range(1, week_loop+1):
-                print(f"{start_of_week1=},{(start_of_week1 + timedelta(days=7*i))=},{i=}")
+                # print(f"{start_of_week1=},{(start_of_week1 + timedelta(days=7*i))=},{i=}")
                 self._date.append((start_of_week1 + timedelta(days=7*i)).strftime("%Y-%m-%d"))
-            #self._date = ["2018-01-01"]
-            import pdb;pdb.set_trace()
-            pass
-        # date_str = '2018-01-14'
-        #end_of_week = start_of_week + timedelta(days=6)
-        #print(end_of_week)
 
     def __change_value_types_pandas(self):
         for key, val in __VALUE_TYPES__.items():
@@ -212,15 +209,18 @@ class HTTP_Client:
         return query, data_type
 
     def __dataset_WM(self, columns):
-        data_pull = [i.rstrip(".*") for i in columns if i in INNER_DATASET]
+        WM__PATTERNS__ = ["safegraph_weekly_patterns"] # "safegraph_monthly_patterns", 
+        data_pull = [i.rstrip(".*") for i in columns if i.rstrip(".*") in WM__PATTERNS__]
         data_type = []
         query = ""
-        if columns == "safegraph_monthly_patterns.*":
-            # if all data from safegraph_monthly_patterns
-            for j in __PATTERNS__["safegraph_monthly_patterns"]:
-                query += __PATTERNS__['safegraph_monthly_patterns'][j] + " "
-            data_type = ["safegraph_monthly_patterns"]
-        elif columns == "safegraph_weekly_patterns.*":
+        # if columns == "safegraph_monthly_patterns.*" or columns == "*" and self.patterns_version == "monthly":
+        #     # if all data from safegraph_monthly_patterns
+        #     for j in __PATTERNS__["safegraph_monthly_patterns"]:
+        #         query += __PATTERNS__['safegraph_monthly_patterns'][j] + " "
+        #     data_type = ["safegraph_monthly_patterns"]
+        if self.patterns_version == "monthly":
+            return False, False
+        elif columns == "safegraph_weekly_patterns.*" or columns == "*" and self.patterns_version == "weekly":
             # if all data from safegraph_weekly_patterns
             for j in __PATTERNS__["safegraph_weekly_patterns"]:
                 query += __PATTERNS__['safegraph_weekly_patterns'][j] + " "
@@ -231,7 +231,6 @@ class HTTP_Client:
                     query += __PATTERNS__[i][j] + " "
                 data_type.append(i)
         else:
-            WM__PATTERNS__ = ["safegraph_monthly_patterns", "safegraph_weekly_patterns"]
             columns = self.WM_dict
             for i in WM__PATTERNS__:
                 available_columns = [j for j in __PATTERNS__[i] if j in columns]
@@ -267,17 +266,7 @@ class HTTP_Client:
         for i in range(0, len(lst), n):
             yield lst[i:i + n]
 
-    def batch_lookup(self, placekeys, columns, date="__default__", patterns_version="__default__", return_type="pandas"):
-        """
-            :param list placekeys:          Unique Placekey ID/IDs inside an array
-                [ a single placekey string or a list of placekeys are both acceptable ]
-            :param str return_type:         (optional) pandas or list
-                default -> pandas
-            :param columns:                 list or str 
-                "*" as string for all or desired column(s) in a [list]
-            :return:                        The data of given placekeys in return_type
-            :rtype:                         pandas.DataFrame or dict
-        """
+    def _date_setter(self, patterns_version, date):
         if date != "__default__" and patterns_version != "__default__":
             self.patterns_version = patterns_version
             self.date = date
@@ -306,6 +295,19 @@ class HTTP_Client:
                 >>> df = sgql_client.batch_lookup(placekeys, columns="*", date="2021-08-05", patterns_version="weekly")
             ''')
 
+
+    def batch_lookup(self, placekeys, columns, date="__default__", patterns_version="__default__", return_type="pandas"):
+        """
+            :param list placekeys:          Unique Placekey ID/IDs inside an array
+                [ a single placekey string or a list of placekeys are both acceptable ]
+            :param str return_type:         (optional) pandas or list
+                default -> pandas
+            :param columns:                 list or str 
+                "*" as string for all or desired column(s) in a [list]
+            :return:                        The data of given placekeys in return_type
+            :rtype:                         pandas.DataFrame or dict
+        """
+        self._date_setter(patterns_version, date)
         self.return_type = return_type
         params = {"placekeys": placekeys}
         # save non weekly and monthly pattern first then the rest
@@ -319,6 +321,8 @@ class HTTP_Client:
                 fist_run = 0 
             else:
                 dataset, data_type = self.__dataset_WM(columns)
+                if not dataset:
+                    continue
                 dataset = dataset.replace("_DATE_", f'"{i}"')
             print(dataset+"\n")
             query = gql(
@@ -351,7 +355,7 @@ class HTTP_Client:
         else:
             raise safeGraphError(f'return_type "{return_type}" does not exist')
 
-    def lookup_by_name(self, location_name, street_address, city, region, iso_country_code, columns, date="__default__", return_type="pandas"):
+    def lookup_by_name(self, location_name, street_address, city, region, iso_country_code, columns, date="__default__", patterns_version="__default__", return_type="pandas"):
         """
             :param str location_name:       location_name of the desidred lookup
             :param str street_address:      street_address of the desidred lookup
@@ -365,6 +369,7 @@ class HTTP_Client:
             :return:                        The data of given placekey in return_type
             :rtype:                         pandas.DataFrame or dict
         """
+        self._date_setter(patterns_version, date)
         self.return_type = return_type
         params = {
             "location_name": location_name, 
@@ -373,32 +378,43 @@ class HTTP_Client:
             "region": region, 
             "iso_country_code": iso_country_code
         }
-        dataset, data_type = self.__dataset(columns)
-        dataset = dataset.replace("_DATE_" , f'''"{self._date[0]}"''')  
-        query = gql(
-            f"""query ($location_name: String!, $street_address: String!, $city: String!, $region: String!, $iso_country_code: String!) {{
-                lookup(query: {{
-                        location_name: $location_name, 
-                        street_address: $street_address, 
-                        city: $city, 
-                        region: $region, 
-                        iso_country_code: $iso_country_code
-                    }}) {{ 
-                    placekey 
-                    {dataset}
-                }}
-            }}"""
-        )
-        result = self.client.execute(query, variable_values=params)
+        fist_run = 1
         data_frame = []
-        dict_ = {}
-        for j in data_type:
-            try:
-                dict_.update(result['lookup'][j])
-            except TypeError:
-                # 'safegraph_weekly_patterns': None
-                pass
-        data_frame.append(dict_)
+        for i in self._date:
+            print("\tlookup_by_name: "+i)
+            if fist_run:
+                dataset, data_type = self.__dataset(columns)
+                dataset = dataset.replace("_DATE_", f'"{i}"') 
+                fist_run = 0 
+            else:
+                dataset, data_type = self.__dataset_WM(columns)
+                if not dataset:
+                    continue
+                dataset = dataset.replace("_DATE_", f'"{i}"')
+            print(dataset+"\n")
+            query = gql(
+                f"""query ($location_name: String!, $street_address: String!, $city: String!, $region: String!, $iso_country_code: String!) {{
+                    lookup(query: {{
+                            location_name: $location_name, 
+                            street_address: $street_address, 
+                            city: $city, 
+                            region: $region, 
+                            iso_country_code: $iso_country_code
+                        }}) {{ 
+                        placekey 
+                        {dataset}
+                    }}
+                }}"""
+            )
+            result = self.client.execute(query, variable_values=params)
+            dict_ = {}
+            for j in data_type:
+                try:
+                    dict_.update(result['lookup'][j])
+                except TypeError:
+                    # 'safegraph_weekly_patterns': None
+                    pass
+            data_frame.append(dict_)
 
         # adjustments
         # self.__lengthCheck__(data_frame) # not working in this function
@@ -411,12 +427,13 @@ class HTTP_Client:
         else:
             raise safeGraphError(f'return_type "{return_type}" does not exist')
 
-    def search(self, columns, date="__default__", 
+    def search(self, columns,
         brand = None, brand_id = None, naics_code = None, phone_number = None,
         # address with following sub-fields
         street_address = None, city = None, region = None, postal_code = None, iso_country_code = None,
         max_results=20,
         after_result_number=0,
+        date="__default__", patterns_version="__default__",
         return_type="pandas"):
         """
             :param columns:                 list or str 
@@ -443,8 +460,9 @@ class HTTP_Client:
         # self.errors = []                #################
         #################################################
                                           ############
-        dataset, data_type = self.__dataset(columns)
-        dataset = dataset.replace("_DATE_" , f'''"{self._date[0]}"''')  
+        self._date_setter(patterns_version, date)
+        # dataset, data_type = self.__dataset(columns)
+        # dataset = dataset.replace("_DATE_" , f'''"{self._date[0]}"''')  
         params = f"""
 {(lambda x,y: f' {x}: "{y}" ' if y!=None else "")("brand", brand)}
 {(lambda x,y: f' {x}: "{y}" ' if y!=None else "")("brand_id", brand_id)}
@@ -463,42 +481,61 @@ class HTTP_Client:
         after = 0
         output = []
         chunks = self.__chunks()
-        for i in chunks:
-            first = len(i)
-            query = gql(
-                f"""query {{
-                    search(first: {first} after: {after+after_result_number} filter: {{
-                        {params}
-                        }}) {{ 
-                        placekey 
-                        {dataset}
-                    }}
-                }}"""
-            )
-            try:
-                result = self.client.execute(query)
-            except Exception as e:
-                print(e)
-                #if type(e) == ConnectionError:
-                result = {'search': []}
-                self.errors.append(f"{after+after_result_number}-{first+after+after_result_number}")
-            output+=result['search']
-            after += first
         data_frame = []
-        for out in output:
-            dict_ = {}
-            for j in data_type:
+        for chu in chunks:
+            first = len(chu)
+            fist_run = 1 # for the first pull, pull all data the rest only weekly
+            data_frame = []
+            for i in self._date:
+                print("\tsearch: "+i)
+                if fist_run:
+                    dataset, data_type = self.__dataset(columns)
+                    dataset = dataset.replace("_DATE_", f'"{i}"') 
+                    fist_run = 0 
+                else:
+                    dataset, data_type = self.__dataset_WM(columns)
+                    if not dataset:
+                        continue
+                    dataset = dataset.replace("_DATE_", f'"{i}"')
+                print(dataset+"\n")
+                query = gql(
+                    f"""query {{
+                        search(first: {first} after: {after+after_result_number} filter: {{
+                            {params}
+                            }}) {{ 
+                            placekey 
+                            {dataset}
+                        }}
+                    }}"""
+                )
+                # query = gql(
+                #     f"""query($placekeys: [Placekey!]) {{
+                #         batch_lookup(placekeys: $placekeys) {{
+                #             placekey
+                #         {dataset}
+                #         }}
+                #     }}"""
+                # ) 
                 try:
-                    dict_.update(out[j])
-                except TypeError:
-                    # 'safegraph_weekly_patterns': None
-                    pass
-            dict_['placekey'] = out["placekey"]
-            data_frame.append(dict_)
-        # DEBUGGER
-        # len(f"{data_frame=}")
+                    result = self.client.execute(query)
+                except Exception as e:
+                    print(e)
+                    #if type(e) == ConnectionError:
+                    result = {'search': []}
+                    self.errors.append(f"{after+after_result_number}-{first+after+after_result_number}")
+                output+=result['search']
+                after += first
+            for out in output:
+                dict_ = {}
+                for j in data_type:
+                    try:
+                        dict_.update(out[j])
+                    except TypeError:
+                        # 'safegraph_weekly_patterns': None
+                        pass
+                dict_['placekey'] = out["placekey"]
+                data_frame.append(dict_)
 
-        # adjustments
         self.__lengthCheck__(data_frame)
         self.__adjustments(data_frame)
         self.__error_check(after_result_number)
