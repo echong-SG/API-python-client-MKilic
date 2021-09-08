@@ -33,7 +33,7 @@ class HTTP_Client:
         self.max_results = 20
         self.errors = []
         self._date = [datetime.now().strftime("%Y-%m-%d")]
-        self.patterns_version = "monthly"
+        self.patterns_version = "weekly"
         self._date_min_ = datetime.strptime("2018-01-01", '%Y-%m-%d')
 
     def __str__(self):

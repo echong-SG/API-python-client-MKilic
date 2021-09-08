@@ -39,16 +39,19 @@ def test_EUGENE_case():
         'popularity_by_day',
         'related_same_month_brand',
         "latitude",
+        "brands",
         # 'related_same_week_brand',
     ]
-    cols = ["location_name"]
-    sgql_client.lookup(
+    cols = "*"
+    df = sgql_client.lookup(
         'zzw-222@8fy-fjg-b8v', 
         columns = cols
     )
     sgql_client.save()
+    import pdb;pdb.set_trace()
     input(f'''lookup: columns=[{cols}], Eugene test case, saved to csv''')
 
+test_EUGENE_case()
 
 def test_lookup_by_name_each_case():
     sgql_client.date = ["2021-08-05", "2021-08-12", "2021-08-19"]
