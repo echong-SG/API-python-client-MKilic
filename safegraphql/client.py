@@ -273,6 +273,10 @@ class HTTP_Client:
             yield lst[i:i + n]
 
     def _date_setter(self, patterns_version, date):
+        if patterns_version == "monthly":
+            raise safeGraphError('''
+                *** Currently, only the most recent month of Monthly Patterns can be accessed via the SafeGraph API. For historical data, please query Weekly Patterns data.
+            ''')
         if date != "__default__" and patterns_version != "__default__":
             self.patterns_version = patterns_version
             self.date = date
