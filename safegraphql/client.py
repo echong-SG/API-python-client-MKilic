@@ -467,13 +467,14 @@ When querying by location & address, it's necessary to have at least the followi
             raise safeGraphError(f'return_type "{return_type}" does not exist')
 
     def search(self, columns,
-        brand = None, brand_id = None, naics_code = None, phone_number = None,
+        # params
+        brand:str=None, brand_id:str=None, naics_code:int=None, phone_number:str=None,
         # address with following sub-fields
-        street_address = None, city = None, region = None, postal_code = None, iso_country_code = None,
-        max_results=20,
-        after_result_number=0,
-        date="__default__", patterns_version="__default__",
-        return_type="pandas"):
+        location_name:str=None, street_address:str=None, city:str=None, region:str=None, postal_code:str=None, iso_country_code:str=None,
+        max_results:int=20,
+        after_result_number:int=0,
+        date:str="__default__", patterns_version:str="__default__",
+        return_type:str="pandas"):
         """
             :param columns:                 list or str 
                 "*" as string for all or desired column(s) in a [list]
@@ -509,6 +510,7 @@ When querying by location & address, it's necessary to have at least the followi
 {(lambda x,y: f' {x}: "{y}" ' if y!=None else "")("phone_number", phone_number)}
 """
         address = f""" address: {{
+{(lambda x,y: f' {x}: "{y}" ' if y!=None else "")("location_name", location_name)}
 {(lambda x,y: f' {x}: "{y}" ' if y!=None else "")("street_address", street_address)}
 {(lambda x,y: f' {x}: "{y}" ' if y!=None else "")("city", city)}
 {(lambda x,y: f' {x}: "{y}" ' if y!=None else "")("region", region)}
