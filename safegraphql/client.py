@@ -3,7 +3,7 @@ import json
 from gql import gql
 from gql import Client as gql_Client
 from gql.transport.requests import RequestsHTTPTransport
-from .types import __VALUE_TYPES__, DATASET, INNER_DATASET, __PATTERNS__
+from .types import __VALUE_TYPES__, DATASET, INNER_DATASET, __PATTERNS__, WM__PATTERNS__
 from requests.exceptions import *  
 from datetime import datetime, timedelta
 from time import sleep
@@ -34,7 +34,6 @@ class HTTP_Client:
         self.errors = []
         self._date = [datetime.now().strftime("%Y-%m-%d")]
         self.patterns_version = "monthly"
-        self.WM_dict = []
         self._date_min_ = datetime.strptime("2018-01-01", '%Y-%m-%d')
 
     def __str__(self):
@@ -59,13 +58,13 @@ class HTTP_Client:
                 self._date.append(start_of_week.strftime("%Y-%m-%d"))
             self._date = list(set(self._date)) # drops duplicates
             self._date.sort()
-        if type(value) == str:
+        elif type(value) == str:
             d1 = datetime.strptime(value, '%Y-%m-%d')
             start_of_week = d1 - timedelta(days=d1.weekday())
             if start_of_week < self._date_min_:
                 raise safeGraphError(f'''*** DateTime {d1} cannot be smaller than {self._date_min_}''')
             self._date = [start_of_week.strftime("%Y-%m-%d")]
-        if type(value) == dict:
+        elif type(value) == dict:
             d1 = datetime.strptime(value['date_range_start'], "%Y-%m-%d")
             d2 = datetime.strptime(value['date_range_end'], "%Y-%m-%d")
             start_of_week1 = d1 - timedelta(days=d1.weekday())
@@ -74,8 +73,11 @@ class HTTP_Client:
             start_of_week2 = d2 - timedelta(days=d2.weekday())
             week_loop = int(abs((start_of_week1 - start_of_week2).days / 7))  
             for i in range(1, week_loop+1):
-                # print(f"{start_of_week1=},{(start_of_week1 + timedelta(days=7*i))=},{i=}")
                 self._date.append((start_of_week1 + timedelta(days=7*i)).strftime("%Y-%m-%d"))
+        else:
+            # XXX
+            # better explain
+            raise safeGraphError(f'''*** Unrecognized DateTime! {value}\n must be either list/str/dict''')
 
     def __change_value_types_pandas(self):
         for key, val in __VALUE_TYPES__.items():
@@ -132,20 +134,20 @@ class HTTP_Client:
             raise ValueError(f'''
                 Invalid column name(s): "{'", "'.join(invalid_values)}"
             ''')
-        WM_dict = {el:0 for el in columns}
-        represent_dict = {}
-        WM_arr = ["safegraph_monthly_patterns", "safegraph_weekly_patterns"]
-        for i in WM_arr:
-            for j in columns:
-                if j in __PATTERNS__[i].keys():
-                    WM_dict[j]+=1
-                    represent_dict[j] = i
-        invalid_values = [f"{i} in only in {represent_dict[i]}" for i in WM_dict if WM_dict[i] == 1]
+
+        invalid_values = []
+        monthly_only = set(__PATTERNS__['safegraph_monthly_patterns'].keys()).difference(__PATTERNS__['safegraph_weekly_patterns'])
+        monthly_only_arr = [el for el in columns if el in monthly_only]
+        weekly_only = set(__PATTERNS__['safegraph_weekly_patterns'].keys()).difference(__PATTERNS__['safegraph_monthly_patterns'])
+        weekly_only_arr = [el for el in columns if el in weekly_only]
+        if len(monthly_only_arr) > 0 and len(weekly_only_arr) > 0:
+            invalid_values = [f"\n\t{i} is only in safegraph_monthly_patterns" for i in monthly_only_arr] + [f"\n\t{i} is only in safegraph_weekly_patterns" for i in weekly_only_arr]
+
         if len(invalid_values) > 1:
             raise ValueError(f'''
-                Invalid column name(s): {' and '.join(invalid_values)}\nThose cannot be used in a single search
+    Invalid column name(s): {' and '.join(invalid_values)}
+    Those cannot be used in a single search
             ''')
-        self.WM_dict = [i for i in WM_dict if WM_dict[i] > 0]
 
 
     def __dataset(self, columns):
@@ -196,9 +198,13 @@ class HTTP_Client:
                     query += __PATTERNS__[i][j] + " "
                 data_type.append(i)
         else:
-            self.__column_check_raise(columns)
             # if spesific column(s) wanted
+            self.__column_check_raise(columns)
             for i in DATASET:
+                if i == "safegraph_monthly_patterns" and self.patterns_version == "weekly":
+                    continue
+                elif i == "safegraph_weekly_patterns" and self.patterns_version == "montly":
+                    continue
                 available_columns = [j for j in __PATTERNS__[i] if j in columns]
                 if len(available_columns) > 0:
                     data_type.append(i)
@@ -206,10 +212,10 @@ class HTTP_Client:
                     for j in available_columns:
                         query += __PATTERNS__[i][j] + " "
                     query += __PATTERNS__[i]["__footer__"] + " "
+                columns = [i for i in columns if i not in available_columns]
         return query, data_type
 
     def __dataset_WM(self, columns):
-        WM__PATTERNS__ = ["safegraph_weekly_patterns"] # "safegraph_monthly_patterns", 
         data_pull = [i.rstrip(".*") for i in columns if i.rstrip(".*") in WM__PATTERNS__]
         data_type = []
         query = ""
@@ -219,27 +225,27 @@ class HTTP_Client:
         #         query += __PATTERNS__['safegraph_monthly_patterns'][j] + " "
         #     data_type = ["safegraph_monthly_patterns"]
         if self.patterns_version == "monthly":
-            return False, False
-        elif columns == "safegraph_weekly_patterns.*" or columns == "*" and self.patterns_version == "weekly":
-            # if all data from safegraph_weekly_patterns
-            for j in __PATTERNS__["safegraph_weekly_patterns"]:
-                query += __PATTERNS__['safegraph_weekly_patterns'][j] + " "
-            data_type = ["safegraph_weekly_patterns"]
-        elif len(data_pull) > 0:
-            for i in data_pull:
-                for j in __PATTERNS__[i]:
-                    query += __PATTERNS__[i][j] + " "
-                data_type.append(i)
-        else:
-            columns = self.WM_dict
-            for i in WM__PATTERNS__:
-                available_columns = [j for j in __PATTERNS__[i] if j in columns]
-                if len(available_columns) > 0:
-                    data_type.append(i)
-                    query += __PATTERNS__[i]["__header__"] + " "
-                    for j in available_columns:
+            return "", False
+        else: # self.patterns_version == "weekly"
+            if columns == "safegraph_weekly_patterns.*" or columns == "*":
+                # if all data from safegraph_weekly_patterns
+                for j in __PATTERNS__["safegraph_weekly_patterns"]:
+                    query += __PATTERNS__['safegraph_weekly_patterns'][j] + " "
+                data_type = ["safegraph_weekly_patterns"]
+            elif len(data_pull) > 0:
+                for i in data_pull:
+                    for j in __PATTERNS__[i]:
                         query += __PATTERNS__[i][j] + " "
-                    query += __PATTERNS__[i]["__footer__"] + " "
+                    data_type.append(i)
+            else:
+                for i in WM__PATTERNS__:
+                    available_columns = [j for j in __PATTERNS__[i] if j in columns]
+                    if len(available_columns) > 0:
+                        data_type.append(i)
+                        query += __PATTERNS__[i]["__header__"] + " "
+                        for j in available_columns:
+                            query += __PATTERNS__[i][j] + " "
+                        query += __PATTERNS__[i]["__footer__"] + " "
         return query, data_type
 
     def __adjustments(self, data_frame):
@@ -255,8 +261,10 @@ class HTTP_Client:
     def __error_check(self, after_result_number=None):
         if len(self.errors) > 0:
             print(f'results {" and ".join([i for i in self.errors])} failed and must be re-queried')
-        if after_result_number != None:
-            print(f"{after_result_number=}")
+        # if after_result_number != None:
+        #     ### XXX
+        #     # TODO?
+        #     print(f"{after_result_number=}")
         self.errors = []
 
     def __chunks(self):
@@ -313,15 +321,16 @@ class HTTP_Client:
         # save non weekly and monthly pattern first then the rest
         first_run = 1 # for the first pull, pull all data the rest only weekly
         data_frame = []
+        print(f"\n\n\n\tbatch_lookup: {columns=},{date=},{patterns_version=},{return_type=}\n\n\n")
         for i in self._date:
-            print("\t"+i)
+            print("\n\t "+i+"\n")
             if first_run:
                 dataset, data_type = self.__dataset(columns)
                 dataset = dataset.replace("_DATE_", f'"{i}"') 
                 first_run = 0 
             else:
                 dataset, data_type = self.__dataset_WM(columns)
-                if not dataset:
+                if dataset == "":
                     continue
                 dataset = dataset.replace("_DATE_", f'"{i}"')
             print(dataset+"\n")
@@ -380,15 +389,16 @@ class HTTP_Client:
         }
         first_run = 1
         data_frame = []
+        print(f"\n\n\n\tlookup_by_name: {columns=},{date=},{patterns_version=},{return_type=}\n\n\n")
         for i in self._date:
-            print("\tlookup_by_name: "+i)
+            print("\n\t"+i+"\n")
             if first_run:
                 dataset, data_type = self.__dataset(columns)
                 dataset = dataset.replace("_DATE_", f'"{i}"') 
                 first_run = 0 
             else:
                 dataset, data_type = self.__dataset_WM(columns)
-                if not dataset:
+                if dataset == "":
                     continue
                 dataset = dataset.replace("_DATE_", f'"{i}"')
             print(dataset+"\n")
@@ -482,19 +492,20 @@ class HTTP_Client:
         output = []
         chunks = self.__chunks()
         data_frame = []
+        print(f"\n\n\n\tsearch: {columns=},{date=},{patterns_version=},{return_type=}\n\n\n")
         for chu in chunks:
             first = len(chu)
             first_run = 1 # for the first pull, pull all data the rest only weekly
             data_frame = []
             for i in self._date:
-                print("\tsearch: "+i)
+                print("\n\t "+i+"\n")
                 if first_run:
                     dataset, data_type = self.__dataset(columns)
                     dataset = dataset.replace("_DATE_", f'"{i}"') 
                     first_run = 0 
                 else:
                     dataset, data_type = self.__dataset_WM(columns)
-                    if not dataset:
+                    if dataset == "":
                         continue
                     dataset = dataset.replace("_DATE_", f'"{i}"')
                 print(dataset+"\n")
@@ -519,6 +530,7 @@ class HTTP_Client:
                 try:
                     result = self.client.execute(query)
                 except Exception as e:
+                    print("\n\n\n\t*** ERROR ***\n\n\n")
                     print(e)
                     #if type(e) == ConnectionError:
                     result = {'search': []}

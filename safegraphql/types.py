@@ -1,3 +1,4 @@
+WM__PATTERNS__ = ["safegraph_weekly_patterns"] # "safegraph_monthly_patterns", 
 DATASET = ["safegraph_core", "safegraph_geometry", "safegraph_monthly_patterns", "safegraph_weekly_patterns",]
 INNER_DATASET = ["safegraph_core.*", "safegraph_geometry.*", "safegraph_monthly_patterns.*", "safegraph_weekly_patterns.*",] # for dataset column functionality
 __PATTERNS__ = {

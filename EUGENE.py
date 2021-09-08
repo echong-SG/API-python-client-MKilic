@@ -29,10 +29,25 @@ placekeys = [
         "222-223@65y-rxx-djv", # (Walmart in Albany, NY)
         ]
 
-sgql_client.date = {"date_range_start": "2021-05-05", "date_range_end": "2021-08-01"}
+sgql_client.date = {"date_range_start": "2021-07-10", "date_range_end": "2021-08-01"}
+sgql_client.patterns_version = "weekly"
+
+# misc. columns
+cols = [
+    'popularity_by_day',
+    'related_same_month_brand',
+    "latitude",
+    # 'related_same_week_brand',
+]
+
+sgql_client.batch_lookup(
+    'zzw-222@8fy-fjg-b8v', 
+    columns = cols
+)
+sgql_client.save()
+input(f'''batch_lookup: columns=[{cols}], Eugene test case, saved to csv''')
 # sgql_client.date = ["2021-08-05", "2021-08-12", "2021-08-19"]
 # print(sgql_client.date)
-# #sgql_client.patterns_version = "weekly"
 # df = sgql_client.batch_lookup(placekeys, columns=["safegraph_brand_ids", "date_range_start", "date_range_end", "visits_by_day"], return_type="pandas") 
 # sgql_client.save()
 # printy(df)
@@ -60,7 +75,6 @@ input('''lookup_by_name: case saved to results.csv, next dataframe? next case is
 df = sgql_client.batch_lookup(placekeys, columns="*", date="2021-01-01", patterns_version="weekly", return_type="pandas")
 sgql_client.save()
 printy(df)
-input('''batch_lookup: columns="*" case saved to results.csv, next dataframe? next case is error case''')
 input('''manual case [columns="*", date="2021-01-01", patterns_version="weekly"] saved to results.csv, next dataframe? next case is error case''')
 columns = ['related_same_month_brand', 'visits_by_each_hour', "location_name", "longitude", "date_range_start"]
 try:
