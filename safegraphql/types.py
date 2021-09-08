@@ -76,6 +76,7 @@ __PATTERNS__ = {
         "raw_visit_counts": "raw_visit_counts",
         "raw_visitor_counts": "raw_visitor_counts",
         "visits_by_day": "visits_by_day",
+        "poi_cbg": "poi_cbg",
         "visitor_home_cbgs": """
             visitor_home_cbgs {
                 key: key

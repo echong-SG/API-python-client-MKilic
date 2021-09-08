@@ -268,7 +268,7 @@ class HTTP_Client:
     def __chunks(self):
         """Yield successive n-sized chunks from self.max_results."""
         lst = [i for i in range(self.max_results)]
-        n = 20
+        n = 500
         for i in range(0, len(lst), n):
             yield lst[i:i + n]
 
