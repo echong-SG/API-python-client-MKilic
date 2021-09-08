@@ -284,9 +284,9 @@ class HTTP_Client:
                 >>> sgql_client.date = ["2021-08-05", "2021-08-12", "2021-08-19"]
                 >>> sgql_client.date = "2021-08-05"
                 >>> sgql_client.date = {"date_range_start": "2021-01-05", "date_range_end": "2021-08-01"}
-                >>> df = sgql_client.batch_lookup(placekeys, columns="*")
+                >>> df = sgql_client.lookup(placekeys, columns="*")
                 # or
-                >>> df = sgql_client.batch_lookup(placekeys, columns="*", date="2021-08-05", patterns_version="weekly")
+                >>> df = sgql_client.lookup(placekeys, columns="*", date="2021-08-05", patterns_version="weekly")
             ''')
         elif date != "__default__" and patterns_version == "__default__":
             raise safeGraphError('''*** patterns_version of HTTP_Client has to be set to weekly in order to make date spesific calculations
@@ -296,13 +296,13 @@ class HTTP_Client:
                 >>> sgql_client.date = ["2021-08-05", "2021-08-12", "2021-08-19"]
                 >>> sgql_client.date = "2021-08-05"
                 >>> sgql_client.date = {"date_range_start": "2021-01-05", "date_range_end": "2021-08-01"}
-                >>> df = sgql_client.batch_lookup(placekeys, columns="*")
+                >>> df = sgql_client.lookup(placekeys, columns="*")
                 # or
-                >>> df = sgql_client.batch_lookup(placekeys, columns="*", date="2021-08-05", patterns_version="weekly")
+                >>> df = sgql_client.lookup(placekeys, columns="*", date="2021-08-05", patterns_version="weekly")
             ''')
 
 
-    def batch_lookup(self, placekeys, columns, date="__default__", patterns_version="__default__", return_type="pandas"):
+    def lookup(self, placekeys, columns, date="__default__", patterns_version="__default__", return_type="pandas"):
         """
             :param list placekeys:          Unique Placekey ID/IDs inside an array
                 [ a single placekey string or a list of placekeys are both acceptable ]
@@ -319,7 +319,7 @@ class HTTP_Client:
         # save non weekly and monthly pattern first then the rest
         first_run = 1 # for the first pull, pull all data the rest only weekly
         data_frame = []
-        print(f"\n\n\n\tbatch_lookup: {columns=},{date=},{patterns_version=},{return_type=}\n\n\n")
+        print(f"\n\n\n\tlookup: {columns=},{date=},{patterns_version=},{return_type=}\n\n\n")
         for i in self._date:
             print("\n\t "+i+"\n")
             if first_run:
@@ -550,14 +550,6 @@ When querying by location & address, it's necessary to have at least the followi
                         }}
                     }}"""
                 )
-                # query = gql(
-                #     f"""query($placekeys: [Placekey!]) {{
-                #         batch_lookup(placekeys: $placekeys) {{
-                #             placekey
-                #         {dataset}
-                #         }}
-                #     }}"""
-                # ) 
                 try:
                     result = self.client.execute(query)
                 except Exception as e:

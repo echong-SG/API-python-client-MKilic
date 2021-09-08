@@ -30,15 +30,15 @@ placekeys = [
 def test_safegraph_weekly_patterns():
     sgql_client.date = ["2021-08-05", "2021-08-12", "2021-08-19"]
     sgql_client.patterns_version = "weekly"
-    df = sgql_client.batch_lookup(placekeys, columns=["safegraph_brand_ids", "date_range_start", "visits_by_day"], return_type="pandas") 
+    df = sgql_client.lookup(placekeys, columns=["safegraph_brand_ids", "date_range_start", "visits_by_day"], return_type="pandas") 
     assert type(df) == df_type
-    df = sgql_client.batch_lookup(placekeys, columns="safegraph_weekly_patterns.*", return_type="pandas")
+    df = sgql_client.lookup(placekeys, columns="safegraph_weekly_patterns.*", return_type="pandas")
     assert type(df) == df_type
-    df = sgql_client.batch_lookup(placekeys, columns="*", date="2021-01-01", patterns_version="weekly", return_type="pandas")
+    df = sgql_client.lookup(placekeys, columns="*", date="2021-01-01", patterns_version="weekly", return_type="pandas")
     assert type(df) == df_type
     columns = ['related_same_month_brand', 'visits_by_each_hour', "location_name", "longitude", "date_range_start"]
     try:
-        df = sgql_client.batch_lookup(placekeys, columns=columns, return_type="pandas")
+        df = sgql_client.lookup(placekeys, columns=columns, return_type="pandas")
     except Exception as e:
         assert type(e) == ValueError
 
@@ -105,26 +105,26 @@ def test_get_place_by_locatian_name_address():
         return_type="list",
         columns="*")) == list
 
-def test_batch_lookup():  
+def test_lookup():  
     __dataset = ["safegraph_core.*", "safegraph_geometry.*", "safegraph_monthly_patterns.*"] # "safegraph_weekly_patterns.*"] # for dataset column functionality
     #import pdb;pdb.set_trace()
-    assert type(sgql_client.batch_lookup(placekeys, columns="*", return_type="pandas")) == df_type
-    assert type(sgql_client.batch_lookup(placekeys, columns=[__dataset[0]], return_type="pandas")) == df_type
+    assert type(sgql_client.lookup(placekeys, columns="*", return_type="pandas")) == df_type
+    assert type(sgql_client.lookup(placekeys, columns=[__dataset[0]], return_type="pandas")) == df_type
     argv_ = []
     for i in range(random.randint(1, len(__dataset))):
         inside = random.choice(__dataset)
         if inside not in argv_:
             argv_.append(inside)
-    assert type(sgql_client.batch_lookup(placekeys, columns=argv_, return_type="pandas")) == df_type
+    assert type(sgql_client.lookup(placekeys, columns=argv_, return_type="pandas")) == df_type
     argv_ = []
     for i in range(random.randint(1, len(__dataset))):
         inside = random.choice(__dataset)
         if inside not in argv_:
             argv_.append(inside)
-    assert type(sgql_client.batch_lookup(placekeys, columns=argv_, return_type="pandas")) == df_type
+    assert type(sgql_client.lookup(placekeys, columns=argv_, return_type="pandas")) == df_type
 
     try:
-        sgql_client.batch_lookup(placekeys, 
+        sgql_client.lookup(placekeys, 
         columns=
             ["fakes", "fake2"] + 
             random.sample(arr,random.randint(1, len(arr))), 
@@ -139,7 +139,7 @@ def test_batch_lookup():
         if inside not in argv_:
             argv_.append(inside)
     try:
-        assert type(sgql_client.batch_lookup(placekeys, columns=argv_, return_type="list")) == list
+        assert type(sgql_client.lookup(placekeys, columns=argv_, return_type="list")) == list
     except Exception as e:
         assert type(e) == ValueError
     argv_ = []
@@ -148,15 +148,15 @@ def test_batch_lookup():
         if inside not in argv_:
             argv_.append(inside)
     try:
-        assert type(sgql_client.batch_lookup(placekeys, columns=argv_, return_type="pandas")) == df_type
+        assert type(sgql_client.lookup(placekeys, columns=argv_, return_type="pandas")) == df_type
     except Exception as e:
         assert type(e) == ValueError
 
-    # assert type(sgql_client.batch_lookup(placekeys, columns=random.sample(arr,random.randint(1, len(arr))), return_type="list")) == list
-    # assert type(sgql_client.batch_lookup(placekeys, columns=random.sample(arr,random.randint(1, len(arr))), return_type="pandas")) == df_type
-    # assert type(sgql_client.batch_lookup(placekeys, columns=random.sample(arr,random.randint(1, len(arr))), return_type="list")) == list
-    # assert type(sgql_client.batch_lookup(placekeys, columns=random.sample(arr,random.randint(1, len(arr))), return_type="pandas")) == df_type
-    # assert type(sgql_client.batch_lookup(placekeys, columns=random.sample(arr,random.randint(1, len(arr))), return_type="list")) == list
+    # assert type(sgql_client.lookup(placekeys, columns=random.sample(arr,random.randint(1, len(arr))), return_type="list")) == list
+    # assert type(sgql_client.lookup(placekeys, columns=random.sample(arr,random.randint(1, len(arr))), return_type="pandas")) == df_type
+    # assert type(sgql_client.lookup(placekeys, columns=random.sample(arr,random.randint(1, len(arr))), return_type="list")) == list
+    # assert type(sgql_client.lookup(placekeys, columns=random.sample(arr,random.randint(1, len(arr))), return_type="pandas")) == df_type
+    # assert type(sgql_client.lookup(placekeys, columns=random.sample(arr,random.randint(1, len(arr))), return_type="list")) == list
 
 def test_null_cases():
     null_check = [
@@ -196,7 +196,7 @@ def test_null_cases():
         # "popularity_by_day",
         # "device_type",
     ] 
-    df = sgql_client.batch_lookup(placekeys, columns="*", return_type="pandas")
+    df = sgql_client.lookup(placekeys, columns="*", return_type="pandas")
     for i in null_check:
         assert(df[i].isnull().values.any() == False)
     for i in range(len(df)):
@@ -205,7 +205,7 @@ def test_null_cases():
 
 def test_save():
     # Read in the result of save() and make sure it matches the original dataframe.
-    df = sgql_client.batch_lookup(placekeys, columns="*", return_type="pandas")
+    df = sgql_client.lookup(placekeys, columns="*", return_type="pandas")
     path = "results.csv"
     sgql_client.save(path)
     saved_df = pd.read_csv(path)

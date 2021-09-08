@@ -42,12 +42,12 @@ def test_EUGENE_case():
         # 'related_same_week_brand',
     ]
     cols = ["location_name"]
-    sgql_client.batch_lookup(
+    sgql_client.lookup(
         'zzw-222@8fy-fjg-b8v', 
         columns = cols
     )
     sgql_client.save()
-    input(f'''batch_lookup: columns=[{cols}], Eugene test case, saved to csv''')
+    input(f'''lookup: columns=[{cols}], Eugene test case, saved to csv''')
 
 
 def test_lookup_by_name_each_case():
@@ -82,14 +82,14 @@ def test_lookup_by_name_each_case():
     input("""lookup_by_name: [location_name + street_address + postal_code + iso_country_code] return_type="pandas")""")
 
 test_lookup_by_name_each_case()                
-# df = sgql_client.batch_lookup(placekeys, columns=["safegraph_brand_ids", "date_range_start", "date_range_end", "visits_by_day"], return_type="pandas") 
+# df = sgql_client.lookup(placekeys, columns=["safegraph_brand_ids", "date_range_start", "date_range_end", "visits_by_day"], return_type="pandas") 
 # sgql_client.save()
 # printy(df)
-# input('''batch_lookup: columns=["safegraph_brand_ids", "date_range_start", "date_range_end", "visits_by_day"] saved to results.csv, next dataframe?''') 
-# df = sgql_client.batch_lookup(placekeys, columns="safegraph_weekly_patterns.*", return_type="pandas")
+# input('''lookup: columns=["safegraph_brand_ids", "date_range_start", "date_range_end", "visits_by_day"] saved to results.csv, next dataframe?''') 
+# df = sgql_client.lookup(placekeys, columns="safegraph_weekly_patterns.*", return_type="pandas")
 # sgql_client.save()
 # printy(df)
-# input('''batch_lookup: columns="safegraph_weekly_patterns.*" saved to results.csv, next dataframe?''')
+# input('''lookup: columns="safegraph_weekly_patterns.*" saved to results.csv, next dataframe?''')
 df = sgql_client.search( brand = "starbucks", brand_id = None, naics_code = None, phone_number = None, street_address = None, city = None, region = None, postal_code = None, iso_country_code = None, 
         max_results=70, after_result_number=10, columns=["safegraph_core.*", "safegraph_weekly_patterns.*"], date=["2021-01-01", "2021-02-01"], patterns_version="weekly", return_type="pandas")
 printy(df)
@@ -106,15 +106,15 @@ df = sgql_client.lookup_by_name(
 printy(df)
 sgql_client.save()
 input('''lookup_by_name: case saved to results.csv, next dataframe? next case is error case''')
-df = sgql_client.batch_lookup(placekeys, columns="*", date="2021-01-01", patterns_version="weekly", return_type="pandas")
+df = sgql_client.lookup(placekeys, columns="*", date="2021-01-01", patterns_version="weekly", return_type="pandas")
 sgql_client.save()
 printy(df)
 input('''manual case [columns="*", date="2021-01-01", patterns_version="weekly"] saved to results.csv, next dataframe? next case is error case''')
 columns = ['related_same_month_brand', 'visits_by_each_hour', "location_name", "longitude", "date_range_start"]
 try:
-    df = sgql_client.batch_lookup(placekeys, columns=columns, return_type="pandas")
+    df = sgql_client.lookup(placekeys, columns=columns, return_type="pandas")
     sgql_client.save()
 except:
     pass
 input('''columns=['related_same_month_brand', 'visits_by_each_hour', "location_name", "longitude", "date_range_start"] gave error, finished, go one more time to see the error''')
-df = sgql_client.batch_lookup(placekeys, columns=columns, return_type="pandas")
+df = sgql_client.lookup(placekeys, columns=columns, return_type="pandas")

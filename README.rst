@@ -73,9 +73,9 @@ Examples
         return_type="pandas",
         columns="*")
     ################
-    # batch_lookup #
+    # lookup #
     ################
-    df_3 = sgql_client.batch_lookup(placekeys, columns="*")
+    df_3 = sgql_client.lookup(placekeys, columns="*")
     ########
     # save #
     ########
