@@ -311,14 +311,14 @@ class HTTP_Client:
         self.return_type = return_type
         params = {"placekeys": placekeys}
         # save non weekly and monthly pattern first then the rest
-        fist_run = 1 # for the first pull, pull all data the rest only weekly
+        first_run = 1 # for the first pull, pull all data the rest only weekly
         data_frame = []
         for i in self._date:
             print("\t"+i)
-            if fist_run:
+            if first_run:
                 dataset, data_type = self.__dataset(columns)
                 dataset = dataset.replace("_DATE_", f'"{i}"') 
-                fist_run = 0 
+                first_run = 0 
             else:
                 dataset, data_type = self.__dataset_WM(columns)
                 if not dataset:
@@ -378,14 +378,14 @@ class HTTP_Client:
             "region": region, 
             "iso_country_code": iso_country_code
         }
-        fist_run = 1
+        first_run = 1
         data_frame = []
         for i in self._date:
             print("\tlookup_by_name: "+i)
-            if fist_run:
+            if first_run:
                 dataset, data_type = self.__dataset(columns)
                 dataset = dataset.replace("_DATE_", f'"{i}"') 
-                fist_run = 0 
+                first_run = 0 
             else:
                 dataset, data_type = self.__dataset_WM(columns)
                 if not dataset:
@@ -484,14 +484,14 @@ class HTTP_Client:
         data_frame = []
         for chu in chunks:
             first = len(chu)
-            fist_run = 1 # for the first pull, pull all data the rest only weekly
+            first_run = 1 # for the first pull, pull all data the rest only weekly
             data_frame = []
             for i in self._date:
                 print("\tsearch: "+i)
-                if fist_run:
+                if first_run:
                     dataset, data_type = self.__dataset(columns)
                     dataset = dataset.replace("_DATE_", f'"{i}"') 
-                    fist_run = 0 
+                    first_run = 0 
                 else:
                     dataset, data_type = self.__dataset_WM(columns)
                     if not dataset:

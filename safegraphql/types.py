@@ -144,26 +144,26 @@ __PATTERNS__ = {
         "visits_by_day": "visits_by_day",
         "visits_by_each_hour": "visits_by_each_hour",
         "poi_cbg": "poi_cbg",
-        # "visitor_home_cbgs": """
-        #     visitor_home_cbgs {
-        #         key
-        #         value
-        # }""",
-        # "visitor_home_aggregation": """
-        #     visitor_home_aggregation {
-        #         key
-        #         value
-        # }""",
-        # "visitor_daytime_cbgs": """
-        #     visitor_daytime_cbgs {
-        #         key
-        #         value
-        # }""",
-        # "visitor_country_of_origin": """
-        #     visitor_country_of_origin {
-        #         key
-        #         value
-        # }""",
+        "visitor_home_cbgs": """
+            visitor_home_cbgs {
+                key
+                value
+        }""",
+        "visitor_home_aggregation": """
+            visitor_home_aggregation {
+                key
+                value
+        }""",
+        "visitor_daytime_cbgs": """
+            visitor_daytime_cbgs {
+                key
+                value
+        }""",
+        "visitor_country_of_origin": """
+            visitor_country_of_origin {
+                key
+                value
+        }""",
         "distance_from_home": "distance_from_home",
         "median_dwell": "median_dwell",
         "bucketed_dwell_times": """
@@ -181,6 +181,11 @@ __PATTERNS__ = {
                 key
                 value
         }""",
+        # "device_type": """
+        #     device_type {
+        #         key: key
+        #         value: value
+        # }""",
         "__footer__": "}"
     },
 }
