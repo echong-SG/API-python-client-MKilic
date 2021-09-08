@@ -29,25 +29,59 @@ placekeys = [
         "222-223@65y-rxx-djv", # (Walmart in Albany, NY)
         ]
 
-sgql_client.date = {"date_range_start": "2021-07-10", "date_range_end": "2021-08-01"}
-sgql_client.patterns_version = "weekly"
 
 # misc. columns
-cols = [
-    'popularity_by_day',
-    'related_same_month_brand',
-    "latitude",
-    # 'related_same_week_brand',
-]
 
-sgql_client.batch_lookup(
-    'zzw-222@8fy-fjg-b8v', 
-    columns = cols
-)
-sgql_client.save()
-input(f'''batch_lookup: columns=[{cols}], Eugene test case, saved to csv''')
-# sgql_client.date = ["2021-08-05", "2021-08-12", "2021-08-19"]
-# print(sgql_client.date)
+def test_EUGENE_case():
+    sgql_client.date = {"date_range_start": "2021-07-10", "date_range_end": "2021-08-01"}
+    sgql_client.patterns_version = "weekly"
+    cols = [
+        'popularity_by_day',
+        'related_same_month_brand',
+        "latitude",
+        # 'related_same_week_brand',
+    ]
+    cols = ["location_name"]
+    sgql_client.batch_lookup(
+        'zzw-222@8fy-fjg-b8v', 
+        columns = cols
+    )
+    sgql_client.save()
+    input(f'''batch_lookup: columns=[{cols}], Eugene test case, saved to csv''')
+
+
+def test_lookup_by_name_each_case():
+    sgql_client.date = ["2021-08-05", "2021-08-12", "2021-08-19"]
+    cols = ["safegraph_brand_ids", "date_range_start", "date_range_end", "visits_by_day", "postal_code"]
+    sgql_client.patterns_version = "weekly"
+    # location_name + street_address + city + region + iso_country_code 
+    df = sgql_client.lookup_by_name(
+        location_name="Taco Bell", 
+        street_address= "710 3rd St", 
+        city= "San Francisco", 
+        region="CA", 
+        iso_country_code="US", columns=cols, return_type="pandas")
+    print(df["postal_code"]) 
+    input("""lookup_by_name: [location_name + street_address + city + region + iso_country_code] return_type="pandas")""")
+    # location_name + street_address + postal_code + iso_country_code                                                     
+    df = sgql_client.lookup_by_name(
+        location_name="Taco Bell", 
+        street_address= "710 3rd St", 
+        postal_code= "94107", 
+        region="CA", 
+        iso_country_code="US", columns=cols + ["latitude", "longitude"], return_type="pandas")       
+    print(df["latitude"], df["longitude"]) 
+    input("""lookup_by_name: [location_name + street_address + postal_code + iso_country_code] return_type="pandas")""")
+    # location_name + latitude + longitude + iso_country_code  
+    df = sgql_client.lookup_by_name(
+        location_name="Taco Bell", 
+        latitude=37.778599,
+        longitude=-122.39276,
+        iso_country_code="US", columns=cols, return_type="pandas")       
+    print(df["postal_code"]) 
+    input("""lookup_by_name: [location_name + street_address + postal_code + iso_country_code] return_type="pandas")""")
+
+test_lookup_by_name_each_case()                
 # df = sgql_client.batch_lookup(placekeys, columns=["safegraph_brand_ids", "date_range_start", "date_range_end", "visits_by_day"], return_type="pandas") 
 # sgql_client.save()
 # printy(df)

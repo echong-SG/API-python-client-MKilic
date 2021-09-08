@@ -261,10 +261,8 @@ class HTTP_Client:
     def __error_check(self, after_result_number=None):
         if len(self.errors) > 0:
             print(f'results {" and ".join([i for i in self.errors])} failed and must be re-queried')
-        # if after_result_number != None:
-        #     ### XXX
-        #     # TODO?
-        #     print(f"{after_result_number=}")
+        if after_result_number != None:
+            print(after_result_number)
         self.errors = []
 
     def __chunks(self):
@@ -364,7 +362,15 @@ class HTTP_Client:
         else:
             raise safeGraphError(f'return_type "{return_type}" does not exist')
 
-    def lookup_by_name(self, location_name, street_address, city, region, iso_country_code, columns, date="__default__", patterns_version="__default__", return_type="pandas"):
+    def lookup_by_name(self, columns,
+            location_name:str=None, 
+            street_address:str=None, 
+            city:str=None, 
+            region:str=None,
+            iso_country_code:str=None, 
+            postal_code:str=None,
+            latitude:float=None, longitude:float=None, 
+            date="__default__", patterns_version="__default__", return_type="pandas"):
         """
             :param str location_name:       location_name of the desidred lookup
             :param str street_address:      street_address of the desidred lookup
@@ -378,15 +384,42 @@ class HTTP_Client:
             :return:                        The data of given placekey in return_type
             :rtype:                         pandas.DataFrame or dict
         """
-        self._date_setter(patterns_version, date)
+        if location_name != None and street_address != None and city != None and region != None and iso_country_code != None:
+            pass
+        elif location_name != None and street_address != None and postal_code != None and iso_country_code != None:
+            pass
+        elif location_name != None and latitude != None and longitude != None and iso_country_code != None:
+            pass
+        else:
+            # XXX
+            # TODO
+            # better explain
+            raise safeGraphError('''*** Not enough parameter to fill query
+When querying by location & address, it's necessary to have at least the following combination of fields to return a result:
+    location_name + street_address + city + region + iso_country_code
+    location_name + street_address + postal_code + iso_country_code
+    location_name + latitude + longitude + iso_country_code
+            ''')
+
         self.return_type = return_type
-        params = {
-            "location_name": location_name, 
-            "street_address": street_address, 
-            "city": city, 
-            "region": region, 
-            "iso_country_code": iso_country_code
-        }
+        self._date_setter(patterns_version, date)
+        params = f"""
+{(lambda x,y: f' {x}: "{y}" ' if y!=None else "")("location_name", location_name)}
+{(lambda x,y: f' {x}: "{y}" ' if y!=None else "")("street_address", street_address)}
+{(lambda x,y: f' {x}: "{y}" ' if y!=None else "")("city", city)}
+{(lambda x,y: f' {x}: "{y}" ' if y!=None else "")("region", region)}
+{(lambda x,y: f' {x}: "{y}" ' if y!=None else "")("iso_country_code", iso_country_code)}
+{(lambda x,y: f' {x}: "{y}" ' if y!=None else "")("postal_code", postal_code)}
+{(lambda x,y: f' {x}: {float(y)} ' if y!=None else "")("latitude", latitude)}
+{(lambda x,y: f' {x}: {float(y)} ' if y!=None else "")("longitude", longitude)}
+"""
+        # params = {
+        #     "location_name": location_name, 
+        #     "street_address": street_address, 
+        #     "city": city, 
+        #     "region": region, 
+        #     "iso_country_code": iso_country_code
+        # }
         first_run = 1
         data_frame = []
         print(f"\n\n\n\tlookup_by_name: {columns=},{date=},{patterns_version=},{return_type=}\n\n\n")
@@ -403,20 +436,16 @@ class HTTP_Client:
                 dataset = dataset.replace("_DATE_", f'"{i}"')
             print(dataset+"\n")
             query = gql(
-                f"""query ($location_name: String!, $street_address: String!, $city: String!, $region: String!, $iso_country_code: String!) {{
+                f"""query {{
                     lookup(query: {{
-                            location_name: $location_name, 
-                            street_address: $street_address, 
-                            city: $city, 
-                            region: $region, 
-                            iso_country_code: $iso_country_code
+                        {params}
                         }}) {{ 
                         placekey 
                         {dataset}
                     }}
                 }}"""
             )
-            result = self.client.execute(query, variable_values=params)
+            result = self.client.execute(query)
             dict_ = {}
             for j in data_type:
                 try:
