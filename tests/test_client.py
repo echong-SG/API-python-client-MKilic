@@ -27,68 +27,11 @@ placekeys = [
         "222-223@65y-rxx-djv", # (Walmart in Albany, NY)
         ] 
 
-def test_safegraph_weekly_patterns():
-    sgql_client.date = ["2021-08-05", "2021-08-12", "2021-08-19"]
-    sgql_client.patterns_version = "weekly"
-    df = sgql_client.lookup(placekeys, columns=["safegraph_brand_ids", "date_range_start", "visits_by_day"], return_type="pandas") 
-    assert type(df) == df_type
-    df = sgql_client.lookup(placekeys, columns="safegraph_weekly_patterns.*", return_type="pandas")
-    assert type(df) == df_type
-    df = sgql_client.lookup(placekeys, columns="*", date="2021-01-01", patterns_version="weekly", return_type="pandas")
-    assert type(df) == df_type
-    columns = ['related_same_month_brand', 'visits_by_each_hour', "location_name", "longitude", "date_range_start"]
-    try:
-        df = sgql_client.lookup(placekeys, columns=columns, return_type="pandas")
-    except Exception as e:
-        assert type(e) == ValueError
-
-
-def test_search(): 
-    # max_results = 150
-    # # for loop len check
-    # for i in reversed(range(1, max_results, 5)):
-    #     test = sgql_client.search( brand = "starbucks", brand_id = None, naics_code = None, phone_number = None, street_address = None, city = None, region = None, postal_code = None, iso_country_code = None, 
-    #     max_results=i, after_result_number=i, columns="safegraph_core.*", return_type="list")
-    #     assert type(test) == list
-    #     assert len(test) == i
-    # assert type(sgql_client.search( brand = "starbucks", brand_id = None, naics_code = None, phone_number = None, street_address = None, city = None, region = None, postal_code = None, iso_country_code = None, 
-    #     max_results=55, after_result_number=0, columns="safegraph_core.*", return_type="pandas")) == df_type
-    # assert type(sgql_client.search( brand = "starbucks", brand_id = None, naics_code = None, phone_number = None, street_address = None, city = None, region = None, postal_code = None, iso_country_code = None, 
-    #     max_results=55, after_result_number=5, columns="safegraph_core.*", return_type="pandas")) == df_type
-    assert type(sgql_client.search( brand = "starbucks", brand_id = None, naics_code = None, phone_number = None, street_address = None, city = None, region = None, postal_code = None, iso_country_code = None, 
-        max_results=70, after_result_number=10, columns="safegraph_core.*", return_type="pandas")) == df_type
-    assert type(sgql_client.search( brand = "starbucks", brand_id = None, naics_code = None, phone_number = None, street_address = None, city = None, region = None, postal_code = None, iso_country_code = None, 
-        max_results=55, after_result_number=15, columns="safegraph_core.*", return_type="list")) == list
-    
-    naics_code = "445120"
-    assert type(sgql_client.search(columns = 'safegraph_core.*', naics_code = naics_code)) == df_type
-
-    try:
-        city = 'fsahfsadhfsadkjfsadjf'
-        sgql_client.search(columns = ['safegraph_core.*'], city = city)
-    except Exception as e:
-        assert type(e) == client.safeGraphError
-
-def test_search_pagination():
-    city = "Philadelphia"
-    brand = "Starbucks"
-
-    brand_search_initial = sgql_client.search(columns = ['placekey'], brand = brand, city = city, max_results = 10, after_result_number = 0)
-    brand_search_pagination1 = sgql_client.search(columns = ['placekey'], brand = brand, city = city, max_results = 25, after_result_number = 0)
-    brand_search_pagination2 = sgql_client.search(columns = ['placekey'], brand = brand, city = city, max_results = 25, after_result_number = 10)
-    assert (set(brand_search_initial.placekey) == set(brand_search_pagination1.placekey).difference(brand_search_pagination2.placekey))
-
-def test_overlap():
-    city = "Philadelphia"
-    brand = "Starbucks"
-
-    brand_search_initial = sgql_client.search(columns = ['placekey'], brand = brand, city = city, max_results = 10, after_result_number = 0)
-    brand_search_pagination1 = sgql_client.search(columns = ['placekey'], brand = brand, city = city, max_results = 10, after_result_number = 10)
-    for i in range(len(brand_search_initial)):
-        assert brand_search_initial.loc[i].values[0] != brand_search_pagination1.loc[i].values[0]
-
 def test_get_place_by_locatian_name_address():
+    sgql_client.date = ["2018-06-05", "2019-06-05", "2020-06-05", "2021-06-05"]
+    # safegraph_core
     assert type(sgql_client.lookup_by_name(
+        product="core",
         location_name= "Taco Bell", 
         street_address= "710 3rd St", 
         city= "San Francisco", 
@@ -96,7 +39,9 @@ def test_get_place_by_locatian_name_address():
         iso_country_code= "US",
         return_type="pandas",
         columns="*")) == df_type
+    # safegraph_geometry
     assert type(sgql_client.lookup_by_name(
+        product="geometry",
         location_name= "Taco Bell", 
         street_address= "710 3rd St", 
         city= "San Francisco", 
@@ -104,27 +49,52 @@ def test_get_place_by_locatian_name_address():
         iso_country_code= "US",
         return_type="list",
         columns="*")) == list
+    # safegraph_weekly_patterns
+    weekly = sgql_client.lookup_by_name(product="weekly_patterns", location_name= "Taco Bell", street_address= "710 3rd St", city= "San Francisco", region= "CA", iso_country_code= "US", return_type="pandas", columns=["related_same_week_brand", "related_same_day_brand", "bucketed_dwell_times"])
+    type(weekly) == df_type
+    import pdb;pdb.set_trace()
+
+def test_search(): 
+    sgql_client.date = ["2021-05-05", "2021-06-05", "2021-04-05"]
+    # safegraph_core
+    assert type(sgql_client.search( product="core", columns="*", brand = "starbucks", brand_id = None, naics_code = None, phone_number = None, street_address = None, city = None, region = None, postal_code = None, iso_country_code = None, 
+        max_results=70, after_result_number=10, return_type="pandas")) == df_type
+    # safegraph_geometry
+    assert type(sgql_client.search( product="geometry", brand = "starbucks", columns=["location_name", "street_address", "city", "enclosed", "latitude", "iso_country_code"], brand_id = None, naics_code = None, phone_number = None, street_address = None, city = None, region = None, postal_code = None, iso_country_code = None, 
+        max_results=55, after_result_number=15,  return_type="list")) == list
+    # safegraph_weekly_patterns
+    naics_code = "445120"
+    assert type(sgql_client.search(product="weekly_patterns", columns =["median_dwell", "city", "brands", "visitor_home_cbgs", "distance_from_home", "related_same_day_brand"], naics_code = naics_code)) == df_type
+
+    # safegraph_monthly_patterns
+    try:
+        city = 'fsahfsadhfsadkjfsadjf'
+        sgql_client.search(product="monthly_patterns", columns = "*", city = city)
+    except Exception as e:
+        assert type(e) == client.safeGraphError
 
 def test_lookup():  
-    __dataset = ["safegraph_core.*", "safegraph_geometry.*", "safegraph_monthly_patterns.*"] # "safegraph_weekly_patterns.*"] # for dataset column functionality
-    #import pdb;pdb.set_trace()
-    assert type(sgql_client.lookup(placekeys, columns="*", return_type="pandas")) == df_type
-    assert type(sgql_client.lookup(placekeys, columns=[__dataset[0]], return_type="pandas")) == df_type
-    argv_ = []
-    for i in range(random.randint(1, len(__dataset))):
-        inside = random.choice(__dataset)
-        if inside not in argv_:
-            argv_.append(inside)
-    assert type(sgql_client.lookup(placekeys, columns=argv_, return_type="pandas")) == df_type
-    argv_ = []
-    for i in range(random.randint(1, len(__dataset))):
-        inside = random.choice(__dataset)
-        if inside not in argv_:
-            argv_.append(inside)
-    assert type(sgql_client.lookup(placekeys, columns=argv_, return_type="pandas")) == df_type
+    sgql_client.date = {"date_range_start": "2021-07-10", "date_range_end": "2021-08-01"}
+    # safegraph_core
+    assert type(sgql_client.lookup(placekeys=placekeys, product="core", columns="*", return_type="pandas")) == df_type
+    core = sgql_client.lookup(placekeys=placekeys, product="core", columns=["placekey", "brands", "naics_code"], return_type="pandas")
+    assert type(core) == df_type
+    # safegraph_geometry
+    assert type(sgql_client.lookup(placekeys=placekeys, product="geometry", columns="*", return_type="pandas")) == df_type
+    geometry = sgql_client.lookup(placekeys=placekeys, product="geometry", columns=["location_name", "street_address", "city", "enclosed"], return_type="pandas")
+    assert type(geometry) == df_type
+    # safegraph_weekly_patterns
+    assert type(sgql_client.lookup(placekeys=placekeys, product="weekly_patterns", columns="*", return_type="pandas")) == df_type
+    weekly_patterns = sgql_client.lookup(placekeys=placekeys, product="weekly_patterns", columns=["brands", "visitor_home_cbgs", "distance_from_home", "related_same_day_brand"], return_type="pandas")
+    assert type(weekly_patterns) == df_type
+    # safegraph_monthly_patterns
+    assert type(sgql_client.lookup(placekeys=placekeys, product="monthly_patterns", columns="*", return_type="pandas")) == df_type
+    monthly_patterns = sgql_client.lookup(placekeys=placekeys, product="monthly_patterns", columns=["date_range_start", "date_range_end","raw_visit_counts", "raw_visitor_counts"], return_type="pandas")
+    assert type(monthly_patterns) == df_type
 
     try:
-        sgql_client.lookup(placekeys, 
+        sgql_client.lookup(placekeys=placekeys, 
+        product="core",
         columns=
             ["fakes", "fake2"] + 
             random.sample(arr,random.randint(1, len(arr))), 
@@ -132,82 +102,90 @@ def test_lookup():
     except Exception as e:
         assert(type(e) == ValueError)
 
+# def test_safegraph_weekly_patterns():
+#     sgql_client.date = ["2021-08-05", "2021-08-12", "2021-08-19"]
+#     sgql_client.patterns_version = "weekly"
+#     df = sgql_client.lookup(placekeys, product="core", columns=["safegraph_brand_ids", "date_range_start", "visits_by_day"], return_type="pandas") 
+#     assert type(df) == df_type
+#     df = sgql_client.lookup(placekeys, product="geometry", columns="safegraph_weekly_patterns.*", return_type="pandas")
+#     assert type(df) == df_type
+#     df = sgql_client.lookup(placekeys, product="weekly_patterns", columns="*", date="2021-01-01", patterns_version="weekly", return_type="pandas")
+#     assert type(df) == df_type
+#     columns = ['related_same_month_brand', 'visits_by_each_hour', "location_name", "longitude", "date_range_start"]
+#     try:
+#         df = sgql_client.lookup(placekeys, columns=columns, return_type="pandas")
+#     except Exception as e:
+#         assert type(e) == ValueError
 
-    argv_ = []
-    for i in range(random.randint(1, len(arr))):
-        inside = random.choice(arr)
-        if inside not in argv_:
-            argv_.append(inside)
-    try:
-        assert type(sgql_client.lookup(placekeys, columns=argv_, return_type="list")) == list
-    except Exception as e:
-        assert type(e) == ValueError
-    argv_ = []
-    for i in range(random.randint(1, len(arr))):
-        inside = random.choice(arr)
-        if inside not in argv_:
-            argv_.append(inside)
-    try:
-        assert type(sgql_client.lookup(placekeys, columns=argv_, return_type="pandas")) == df_type
-    except Exception as e:
-        assert type(e) == ValueError
 
-    # assert type(sgql_client.lookup(placekeys, columns=random.sample(arr,random.randint(1, len(arr))), return_type="list")) == list
-    # assert type(sgql_client.lookup(placekeys, columns=random.sample(arr,random.randint(1, len(arr))), return_type="pandas")) == df_type
-    # assert type(sgql_client.lookup(placekeys, columns=random.sample(arr,random.randint(1, len(arr))), return_type="list")) == list
-    # assert type(sgql_client.lookup(placekeys, columns=random.sample(arr,random.randint(1, len(arr))), return_type="pandas")) == df_type
-    # assert type(sgql_client.lookup(placekeys, columns=random.sample(arr,random.randint(1, len(arr))), return_type="list")) == list
+# def test_search_pagination():
+#     city = "Philadelphia"
+#     brand = "Starbucks"
 
-def test_null_cases():
-    null_check = [
-        "placekey",
-        "location_name",
-        "top_category",
-        "sub_category",
-        "naics_code",
-        "latitude",
-        "longitude",
-        "street_address",
-        "city",
-        "region",
-        "postal_code",
-        "iso_country_code",
-        # "tracking_closed_since",
-        # "geometry_type",
-        # "polygon_wkt",
-        # "polygon_class",
-        # "is_synthetic",
-        # "enclosed",
-        # "date_range_start",
-        # "date_range_end",
-        # "raw_visit_counts",
-        # "raw_visitor_counts",
-        # "visits_by_day",
-        # "visitor_home_cbgs",
-        # "visitor_home_aggregation",
-        # "visitor_daytime_cbgs",
-        # "visitor_country_of_origin",
-        # "distance_from_home",
-        # "median_dwell",
-        # "bucketed_dwell_times",
-        # "related_same_day_brand",
-        # "related_same_month_brand",
-        # "popularity_by_hour",
-        # "popularity_by_day",
-        # "device_type",
-    ] 
-    df = sgql_client.lookup(placekeys, columns="*", return_type="pandas")
-    for i in null_check:
-        assert(df[i].isnull().values.any() == False)
-    for i in range(len(df)):
-        # Check that the naics_code column is a string in any Pandas dataframe results.
-        assert(type(df.loc[i]["naics_code"]) == str)
+#     brand_search_initial = sgql_client.search(columns = ['placekey'], brand = brand, city = city, max_results = 10, after_result_number = 0)
+#     brand_search_pagination1 = sgql_client.search(columns = ['placekey'], brand = brand, city = city, max_results = 25, after_result_number = 0)
+#     brand_search_pagination2 = sgql_client.search(columns = ['placekey'], brand = brand, city = city, max_results = 25, after_result_number = 10)
+#     assert (set(brand_search_initial.placekey) == set(brand_search_pagination1.placekey).difference(brand_search_pagination2.placekey))
 
-def test_save():
-    # Read in the result of save() and make sure it matches the original dataframe.
-    df = sgql_client.lookup(placekeys, columns="*", return_type="pandas")
-    path = "results.csv"
-    sgql_client.save(path)
-    saved_df = pd.read_csv(path)
-    # if same shape means same values
-    assert(df.shape == saved_df.shape)
+# def test_overlap():
+#     city = "Philadelphia"
+#     brand = "Starbucks"
+
+#     brand_search_initial = sgql_client.search(columns = ['placekey'], brand = brand, city = city, max_results = 10, after_result_number = 0)
+#     brand_search_pagination1 = sgql_client.search(columns = ['placekey'], brand = brand, city = city, max_results = 10, after_result_number = 10)
+#     for i in range(len(brand_search_initial)):
+#         assert brand_search_initial.loc[i].values[0] != brand_search_pagination1.loc[i].values[0]
+
+# def test_null_cases():
+#     null_check = [
+#         "placekey",
+#         "location_name",
+#         "top_category",
+#         "sub_category",
+#         "naics_code",
+#         "latitude",
+#         "longitude",
+#         "street_address",
+#         "city",
+#         "region",
+#         "postal_code",
+#         "iso_country_code",
+#         # "tracking_closed_since",
+#         # "geometry_type",
+#         # "polygon_wkt",
+#         # "polygon_class",
+#         # "is_synthetic",
+#         # "enclosed",
+#         # "date_range_start",
+#         # "date_range_end",
+#         # "raw_visit_counts",
+#         # "raw_visitor_counts",
+#         # "visits_by_day",
+#         # "visitor_home_cbgs",
+#         # "visitor_home_aggregation",
+#         # "visitor_daytime_cbgs",
+#         # "visitor_country_of_origin",
+#         # "distance_from_home",
+#         # "median_dwell",
+#         # "bucketed_dwell_times",
+#         # "related_same_day_brand",
+#         # "related_same_month_brand",
+#         # "popularity_by_hour",
+#         # "popularity_by_day",
+#         # "device_type",
+#     ] 
+#     df = sgql_client.lookup(placekeys, columns="*", return_type="pandas")
+#     for i in null_check:
+#         assert(df[i].isnull().values.any() == False)
+#     for i in range(len(df)):
+#         # Check that the naics_code column is a string in any Pandas dataframe results.
+#         assert(type(df.loc[i]["naics_code"]) == str)
+
+# def test_save():
+#     # Read in the result of save() and make sure it matches the original dataframe.
+#     df = sgql_client.lookup(placekeys, columns="*", return_type="pandas")
+#     path = "results.csv"
+#     sgql_client.save(path)
+#     saved_df = pd.read_csv(path)
+#     # if same shape means same values
+#     assert(df.shape == saved_df.shape)

@@ -150,75 +150,108 @@ class HTTP_Client:
             ''')
 
 
-    def __dataset(self, columns):
+    def __dataset(self, product, columns):
         w_run_ = 1 # for weekly patterns
         query = ""
         data_type = []
-        data_pull = [i.rstrip(".*") for i in columns if i in INNER_DATASET]
-        if columns == "*":
-            # if all data from all datasets wanted
-            if self.patterns_version == "weekly":
-                __PATTERNS__arr = ["safegraph_weekly_patterns", "safegraph_core", "safegraph_geometry"]
-            else:
-                __PATTERNS__arr = ["safegraph_monthly_patterns", "safegraph_core", "safegraph_geometry"]
-            for i in __PATTERNS__arr:
-                for j in __PATTERNS__[i]:
-                    query += __PATTERNS__[i][j] + " "
-            data_type = __PATTERNS__arr
-        elif columns == "safegraph_core.*":
+        # data_pull = [i.rstrip(".*") for i in columns if i in INNER_DATASET]
+        # if columns == "*":
+        #     # if all data from all datasets wanted
+        #     if self.patterns_version == "weekly":
+        #         __PATTERNS__arr = ["safegraph_weekly_patterns", "safegraph_core", "safegraph_geometry"]
+        #     else:
+        #         __PATTERNS__arr = ["safegraph_monthly_patterns", "safegraph_core", "safegraph_geometry"]
+        #     for i in __PATTERNS__arr:
+        #         for j in __PATTERNS__[i]:
+        #             query += __PATTERNS__[i][j] + " "
+        #     data_type = __PATTERNS__arr
+        if product == "safegraph_core.*":
             # if all data from safegraph_core
-            for j in __PATTERNS__["safegraph_core"]:
-                query += __PATTERNS__["safegraph_core"][j] + " "
+            pattern_pick = __PATTERNS__["safegraph_core"]
+            available_columns = (lambda x: [j for j in pattern_pick if j not in ["__header__", "__footer__"]] if x=="*" else [j for j in pattern_pick if j in columns] )(columns)#[j for j in pattern_pick if j in columns]
+            if len(available_columns) > 0:
+                query += pattern_pick["__header__"] + " "
+                for j in available_columns:
+                    query += pattern_pick[j] + " "
+                query += pattern_pick["__footer__"] + " "
+                # query += __PATTERNS__["safegraph_core"][j] + " "
+            else:
+                raise safeGraphError("*** picked column(s) not available")
             data_type = ["safegraph_core"]
-        elif columns == "safegraph_geometry.*":
+        elif product == "safegraph_geometry.*":
             # if all data from safegraph_geometry
-            for j in __PATTERNS__["safegraph_geometry"]:
-                query += __PATTERNS__['safegraph_geometry'][j] + " "
+            pattern_pick = __PATTERNS__["safegraph_geometry"]
+            available_columns = (lambda x: [j for j in pattern_pick if j not in ["__header__", "__footer__"]] if x=="*" else [j for j in pattern_pick if j in columns] )(columns)#[j for j in pattern_pick if j in columns]
+            if len(available_columns) > 0:
+                query += pattern_pick["__header__"] + " "
+                for j in available_columns:
+                    query += pattern_pick[j] + " "
+                query += pattern_pick["__footer__"] + " "
+                # query += __PATTERNS__['safegraph_geometry'][j] + " "
+            else:
+                raise safeGraphError("*** picked column(s) not available")
             data_type = ["safegraph_geometry"]
-        elif columns == "safegraph_monthly_patterns.*":
+        elif product == "safegraph_monthly_patterns.*":
             # if all data from safegraph_monthly_patterns
-            for j in __PATTERNS__["safegraph_monthly_patterns"]:
-                query += __PATTERNS__['safegraph_monthly_patterns'][j] + " "
+            pattern_pick = __PATTERNS__["safegraph_monthly_patterns"]
+            available_columns = (lambda x: [j for j in pattern_pick if j not in ["__header__", "__footer__"]] if x=="*" else [j for j in pattern_pick if j in columns] )(columns)#[j for j in pattern_pick if j in columns]
+            if len(available_columns) > 0:
+                query += pattern_pick["__header__"] + " "
+                for j in available_columns:
+                    query += pattern_pick[j] + " "
+                query += pattern_pick["__footer__"] + " "
+                # query += __PATTERNS__['safegraph_monthly_patterns'][j] + " "
+            else:
+                raise safeGraphError("*** picked column(s) not available")
             data_type = ["safegraph_monthly_patterns"]
-        elif columns == "safegraph_weekly_patterns.*":
+        elif product == "safegraph_weekly_patterns.*":
             # if all data from safegraph_weekly_patterns
-            for j in __PATTERNS__["safegraph_weekly_patterns"]:
-                query += __PATTERNS__['safegraph_weekly_patterns'][j] + " "
+            pattern_pick = __PATTERNS__["safegraph_weekly_patterns"]
+            available_columns = (lambda x: [j for j in pattern_pick if j not in ["__header__", "__footer__"]] if x=="*" else [j for j in pattern_pick if j in columns] )(columns)#[j for j in pattern_pick if j in columns]
+            if len(available_columns) > 0:
+                query += pattern_pick["__header__"] + " "
+                for j in available_columns:
+                    query += pattern_pick[j] + " "
+                query += pattern_pick["__footer__"] + " "
+                # query += __PATTERNS__['safegraph_weekly_patterns'][j] + " "
+            else:
+                raise safeGraphError("*** picked column(s) not available")
             data_type = ["safegraph_weekly_patterns"]
         elif type(columns) != list:
             raise ValueError("""*** columns argument must to be a list or one of the following string: 
                 * , safegraph_core.* , safegraph_geometry.* , safegraph_monthly_patterns.* , safegraph_weekly_patterns.*
             """)
-        elif len(data_pull) > 0:
-            # if spesific dataset(s) wanted
-            if "safegraph_monthly_patterns" in data_pull and "safegraph_weekly_patterns.*" in data_pull:
-                raise ValueError("""*** Please select columns from only one version of Patterns - weekly or monthly""")
-            for i in data_pull:
-                for j in __PATTERNS__[i]:
-                    query += __PATTERNS__[i][j] + " "
-                data_type.append(i)
-        else:
-            # if spesific column(s) wanted
-            self.__column_check_raise(columns)
-            for i in DATASET:
-                if i == "safegraph_monthly_patterns" and self.patterns_version == "weekly":
-                    continue
-                elif i == "safegraph_weekly_patterns" and self.patterns_version == "montly":
-                    continue
-                available_columns = [j for j in __PATTERNS__[i] if j in columns]
-                if len(available_columns) > 0:
-                    data_type.append(i)
-                    query += __PATTERNS__[i]["__header__"] + " "
-                    for j in available_columns:
-                        query += __PATTERNS__[i][j] + " "
-                    query += __PATTERNS__[i]["__footer__"] + " "
-                columns = [i for i in columns if i not in available_columns]
+        # elif len(data_pull) > 0:
+        #     # if spesific dataset(s) wanted
+        #     if "safegraph_monthly_patterns" in data_pull and "safegraph_weekly_patterns.*" in data_pull:
+        #         raise ValueError("""*** Please select columns from only one version of Patterns - weekly or monthly""")
+        #     for i in data_pull:
+        #         for j in __PATTERNS__[i]:
+        #             query += __PATTERNS__[i][j] + " "
+        #         data_type.append(i)
+        # else:
+        #     # if spesific column(s) wanted
+        #     self.__column_check_raise(columns)
+        #     for i in DATASET:
+        #         if i == "safegraph_monthly_patterns" and self.patterns_version == "weekly":
+        #             continue
+        #         elif i == "safegraph_weekly_patterns" and self.patterns_version == "montly":
+        #             continue
+        #         available_columns = [j for j in __PATTERNS__[i] if j in columns]
+        #         if len(available_columns) > 0:
+        #             data_type.append(i)
+        #             query += __PATTERNS__[i]["__header__"] + " "
+        #             for j in available_columns:
+        #                 query += __PATTERNS__[i][j] + " "
+        #             query += __PATTERNS__[i]["__footer__"] + " "
+        #         columns = [i for i in columns if i not in available_columns]
         return query, data_type
 
-    def __dataset_WM(self, columns):
-        data_pull = [i.rstrip(".*") for i in columns if i.rstrip(".*") in WM__PATTERNS__]
+    def __dataset_WM(self, product, columns):
         data_type = []
         query = ""
+        product = product.rstrip(".*")
+        pattern_pick = __PATTERNS__[product]
         # if columns == "safegraph_monthly_patterns.*" or columns == "*" and self.patterns_version == "monthly":
         #     # if all data from safegraph_monthly_patterns
         #     for j in __PATTERNS__["safegraph_monthly_patterns"]:
@@ -226,26 +259,14 @@ class HTTP_Client:
         #     data_type = ["safegraph_monthly_patterns"]
         if self.patterns_version == "monthly":
             return "", False
+        #if product ==
         else: # self.patterns_version == "weekly"
-            if columns == "safegraph_weekly_patterns.*" or columns == "*":
-                # if all data from safegraph_weekly_patterns
-                for j in __PATTERNS__["safegraph_weekly_patterns"]:
-                    query += __PATTERNS__['safegraph_weekly_patterns'][j] + " "
-                data_type = ["safegraph_weekly_patterns"]
-            elif len(data_pull) > 0:
-                for i in data_pull:
-                    for j in __PATTERNS__[i]:
-                        query += __PATTERNS__[i][j] + " "
-                    data_type.append(i)
-            else:
-                for i in WM__PATTERNS__:
-                    available_columns = [j for j in __PATTERNS__[i] if j in columns]
-                    if len(available_columns) > 0:
-                        data_type.append(i)
-                        query += __PATTERNS__[i]["__header__"] + " "
-                        for j in available_columns:
-                            query += __PATTERNS__[i][j] + " "
-                        query += __PATTERNS__[i]["__footer__"] + " "
+            available_columns = (lambda x: [j for j in pattern_pick if j not in ["__header__", "__footer__"]] if x=="*" else [j for j in pattern_pick if j in columns] )(columns)
+            query += pattern_pick["__header__"] + " "
+            for j in available_columns:
+                query += pattern_pick[j] + " "
+            query += pattern_pick["__footer__"] + " "
+            data_type = [product]
         return query, data_type
 
     def __adjustments(self, data_frame):
@@ -306,7 +327,7 @@ class HTTP_Client:
             ''')
 
 
-    def lookup(self, placekeys, columns, date="__default__", patterns_version="__default__", return_type="pandas"):
+    def lookup(self, product, placekeys, columns, date="__default__", patterns_version="__default__", return_type="pandas"):
         """
             :param list placekeys:          Unique Placekey ID/IDs inside an array
                 [ a single placekey string or a list of placekeys are both acceptable ]
@@ -319,22 +340,24 @@ class HTTP_Client:
         """
         self._date_setter(patterns_version, date)
         self.return_type = return_type
+        product = f"safegraph_{product}.*"
         params = {"placekeys": placekeys}
         # save non weekly and monthly pattern first then the rest
         first_run = 1 # for the first pull, pull all data the rest only weekly
         data_frame = []
-        print(f"\n\n\n\tlookup: {columns=},{date=},{patterns_version=},{return_type=}\n\n\n")
+        print(f"\n\n\n\tlookup: {product=},{columns=},{date=},{patterns_version=},{return_type=}\n\n\n")
         for i in self._date:
             print("\n\t "+i+"\n")
             if first_run:
-                dataset, data_type = self.__dataset(columns)
-                dataset = dataset.replace("_DATE_", f'"{i}"') 
+                dataset, data_type = self.__dataset(product, columns)
                 first_run = 0 
+            elif product not in WM__PATTERNS__:
+                continue
             else:
-                dataset, data_type = self.__dataset_WM(columns)
+                dataset, data_type = self.__dataset_WM(product, columns)
                 if dataset == "":
                     continue
-                dataset = dataset.replace("_DATE_", f'"{i}"')
+            dataset = dataset.replace("_DATE_", f'"{i}"')
             print(dataset+"\n")
             query = gql(
                 f"""query($placekeys: [Placekey!]) {{
@@ -366,7 +389,7 @@ class HTTP_Client:
         else:
             raise safeGraphError(f'return_type "{return_type}" does not exist')
 
-    def lookup_by_name(self, columns,
+    def lookup_by_name(self, product, columns,
             location_name:str=None, 
             street_address:str=None, 
             city:str=None, 
@@ -407,6 +430,7 @@ When querying by location & address, it's necessary to have at least the followi
 
         self.return_type = return_type
         self._date_setter(patterns_version, date)
+        product = f"safegraph_{product}.*"
         params = f"""
 {(lambda x,y: f' {x}: "{y}" ' if y!=None else "")("location_name", location_name)}
 {(lambda x,y: f' {x}: "{y}" ' if y!=None else "")("street_address", street_address)}
@@ -426,18 +450,19 @@ When querying by location & address, it's necessary to have at least the followi
         # }
         first_run = 1
         data_frame = []
-        print(f"\n\n\n\tlookup_by_name: {columns=},{date=},{patterns_version=},{return_type=}\n\n\n")
+        print(f"\n\n\n\tlookup_by_name: {product=},{columns=},{date=},{patterns_version=},{return_type=}\n\n\n")
         for i in self._date:
             print("\n\t"+i+"\n")
             if first_run:
-                dataset, data_type = self.__dataset(columns)
-                dataset = dataset.replace("_DATE_", f'"{i}"') 
+                dataset, data_type = self.__dataset(product, columns)
                 first_run = 0 
+            elif product not in WM__PATTERNS__:
+                continue
             else:
-                dataset, data_type = self.__dataset_WM(columns)
+                dataset, data_type = self.__dataset_WM(product, columns)
                 if dataset == "":
                     continue
-                dataset = dataset.replace("_DATE_", f'"{i}"')
+            dataset = dataset.replace("_DATE_", f'"{i}"')
             print(dataset+"\n")
             query = gql(
                 f"""query {{
@@ -470,7 +495,7 @@ When querying by location & address, it's necessary to have at least the followi
         else:
             raise safeGraphError(f'return_type "{return_type}" does not exist')
 
-    def search(self, columns,
+    def search(self, product, columns,
         # params
         brand:str=None, brand_id:str=None, naics_code:int=None, phone_number:str=None,
         # address with following sub-fields
@@ -484,7 +509,7 @@ When querying by location & address, it's necessary to have at least the followi
                 "*" as string for all or desired column(s) in a [list]
             :param str brand:               brand for searching query
             :param str brand_id:            brand_id for searching query
-            :param str naics_code:          naics_code for searching query
+            :param int naics_code:          naics_code for searching query
             :param str phone_number:        phone_number for searching query
             :param str street_address:      street_address of the desidred place
             :param str city:                city of the desidred place
@@ -505,8 +530,7 @@ When querying by location & address, it's necessary to have at least the followi
         #################################################
                                           ############
         self._date_setter(patterns_version, date)
-        # dataset, data_type = self.__dataset(columns)
-        # dataset = dataset.replace("_DATE_" , f'''"{self._date[0]}"''')  
+        product = f"safegraph_{product}.*"
         params = f"""
 {(lambda x,y: f' {x}: "{y}" ' if y!=None else "")("brand", brand)}
 {(lambda x,y: f' {x}: "{y}" ' if y!=None else "")("brand_id", brand_id)}
@@ -535,14 +559,15 @@ When querying by location & address, it's necessary to have at least the followi
             for i in self._date:
                 print("\n\t "+i+"\n")
                 if first_run:
-                    dataset, data_type = self.__dataset(columns)
-                    dataset = dataset.replace("_DATE_", f'"{i}"') 
+                    dataset, data_type = self.__dataset(product, columns)
                     first_run = 0 
+                elif product not in WM__PATTERNS__:
+                    continue
                 else:
-                    dataset, data_type = self.__dataset_WM(columns)
+                    dataset, data_type = self.__dataset_WM(product, columns)
                     if dataset == "":
                         continue
-                    dataset = dataset.replace("_DATE_", f'"{i}"')
+                dataset = dataset.replace("_DATE_", f'"{i}"')
                 print(dataset+"\n")
                 query = gql(
                     f"""query {{
