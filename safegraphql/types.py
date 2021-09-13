@@ -192,5 +192,7 @@ __PATTERNS__ = {
     },
 }
 __VALUE_TYPES__ = {
-    "naics_code": str,
+    "naics_code": int,
+    "latitude": float,
+    "longitude": float,
 }

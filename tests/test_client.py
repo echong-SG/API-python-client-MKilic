@@ -30,11 +30,16 @@ placekeys = [
 def test_combine():
     sgql_client.date = {"date_range_start": "2021-07-10", "date_range_end": "2021-08-01"}
     core = sgql_client.lookup(placekeys=placekeys, product="core", columns=["placekey", "brands", "naics_code"], return_type="pandas")
+    sgql_client.save(path="core.csv")
     geometry = sgql_client.lookup(placekeys=placekeys, product="geometry", columns=["placekey", "location_name", "street_address", "city", "enclosed"], return_type="pandas")
+    sgql_client.save(path="geometry.csv")
     monthly_patterns = sgql_client.lookup(placekeys=placekeys, product="monthly_patterns", columns=["placekey", "date_range_start", "date_range_end","raw_visit_counts", "raw_visitor_counts"], return_type="pandas")
+    sgql_client.save(path="monthly_patterns.csv")
     arr_ = [ core, geometry, monthly_patterns ]
     inner_df = sgql_client.sg_merge(arr_, how="inner")
+    sgql_client.save(path="inner_df.csv")
     outer_df = sgql_client.sg_merge(arr_, how="outer")
+    sgql_client.save(path="outer_df.csv")
     columns = []
     for i in arr_:
         columns += [i for i in i.columns if i not in columns]

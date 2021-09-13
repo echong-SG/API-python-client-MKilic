@@ -98,6 +98,8 @@ class HTTP_Client:
                     lst[key] = val(lst[key])
                 except KeyError:
                     pass
+                # except TypeError:
+                #     import pdb;pdb.set_trace()
 
     def save(self, path="__default__", return_type="__default__"):
         """
@@ -148,6 +150,7 @@ class HTTP_Client:
                 if type(i) != data_type:
                     raise safeGraphError(f"*** each datasets' type must be the same cannot be {type(i)}")
                 data_type = type(i)
+        self.__adjustments(df.to_dict("records"))
         return df
 
     def __column_check_raise(self, columns):
@@ -248,30 +251,6 @@ class HTTP_Client:
             raise ValueError("""*** columns argument must to be a list or one of the following string: 
                 * , safegraph_core.* , safegraph_geometry.* , safegraph_monthly_patterns.* , safegraph_weekly_patterns.*
             """)
-        # elif len(data_pull) > 0:
-        #     # if spesific dataset(s) wanted
-        #     if "safegraph_monthly_patterns" in data_pull and "safegraph_weekly_patterns.*" in data_pull:
-        #         raise ValueError("""*** Please select columns from only one version of Patterns - weekly or monthly""")
-        #     for i in data_pull:
-        #         for j in __PATTERNS__[i]:
-        #             query += __PATTERNS__[i][j] + " "
-        #         data_type.append(i)
-        # else:
-        #     # if spesific column(s) wanted
-        #     self.__column_check_raise(columns)
-        #     for i in DATASET:
-        #         if i == "safegraph_monthly_patterns" and self.patterns_version == "weekly":
-        #             continue
-        #         elif i == "safegraph_weekly_patterns" and self.patterns_version == "montly":
-        #             continue
-        #         available_columns = [j for j in __PATTERNS__[i] if j in columns]
-        #         if len(available_columns) > 0:
-        #             data_type.append(i)
-        #             query += __PATTERNS__[i]["__header__"] + " "
-        #             for j in available_columns:
-        #                 query += __PATTERNS__[i][j] + " "
-        #             query += __PATTERNS__[i]["__footer__"] + " "
-        #         columns = [i for i in columns if i not in available_columns]
         return query, data_type
 
     def __dataset_WM(self, product, columns):
