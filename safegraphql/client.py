@@ -82,7 +82,7 @@ class HTTP_Client:
     def __change_value_types_pandas(self):
         for key, val in __VALUE_TYPES__.items():
             try:
-                self.df = self.df.astype({key: val}) # errors='ignore')
+                self.df = self.df.astype({key: val}, errors='ignore')
             except KeyError:
                 pass
 
@@ -100,58 +100,6 @@ class HTTP_Client:
                     pass
                 # except TypeError:
                 #     import pdb;pdb.set_trace()
-
-    def save(self, path="__default__", return_type="__default__"):
-        """
-            :param str path:                  (optional) location of the file e.g: "results.csv"
-                saves as a .json file if return_type was "list" 
-                saves as a .csv file if return_type was "pandas"
-                if path is not given saves to current location as results.csv or results.json
-            :param str return_type:          (optional) pandas or list 
-                return type of the saved format by default last return format
-        """
-        if return_type == "__default__":
-            return_type = self.return_type
-        if self.return_type == "pandas":
-            if path != "__default__":
-                self.df.to_csv(path_or_buf=path, index=False)
-            else:
-               self.df.to_csv(path_or_buf="results.csv", index=False) 
-        elif self.return_type == "list":
-            if path != "__default__":
-                with open(path, 'w') as json_file:
-                    json.dump(self.lst, json_file, indent=4)
-            else:
-                with open("results.json", 'w') as json_file:
-                    json.dump(self.lst, json_file, indent=4)
-
-    def sg_merge(self, datasets:list, how="outer"):
-        """
-            :param list datasets:           a list of dataframes or jsons
-            :param str how:                 (optional) join style either outer or inner       
-            :return:                        The data of given datasets in first index type
-            :rtype:                         pandas.DataFrame or list
-        """
-        df = datasets[0]
-        data_type = type(df)
-        if data_type == pd.DataFrame:
-            for i in datasets[1:]:
-                if type(i) != data_type:
-                    raise safeGraphError(f"*** each datasets' type must be the same cannot be {type(i)}")
-                data_type = type(i)
-                try:
-                    df = df.merge(i, how=how)
-                except pd.errors.MergeError as e:
-                    print(e)
-                except TypeError:
-                    print("*** weekly patterns cannot be merged for the current page: TOFIX")
-        elif data_type == type(list):
-            for i in datasets[1:]:
-                if type(i) != data_type:
-                    raise safeGraphError(f"*** each datasets' type must be the same cannot be {type(i)}")
-                data_type = type(i)
-        self.__adjustments(df.to_dict("records"))
-        return df
 
     def __column_check_raise(self, columns):
         dict_ = {el:0 for el in columns}
@@ -332,6 +280,69 @@ class HTTP_Client:
                 >>> df = sgql_client.lookup(placekeys, columns="*", date="2021-08-05", patterns_version="weekly")
             ''')
 
+
+
+    def save(self, path="__default__", return_type="__default__"):
+        """
+            :param str path:                  (optional) location of the file e.g: "results.csv"
+                saves as a .json file if return_type was "list" 
+                saves as a .csv file if return_type was "pandas"
+                if path is not given saves to current location as results.csv or results.json
+            :param str return_type:          (optional) pandas or list 
+                return type of the saved format by default last return format
+        """
+        if return_type == "__default__":
+            return_type = self.return_type
+        if self.return_type == "pandas":
+            if path != "__default__":
+                self.df.to_csv(path_or_buf=path, index=False)
+            else:
+               self.df.to_csv(path_or_buf="results.csv", index=False) 
+        elif self.return_type == "list":
+            if path != "__default__":
+                with open(path, 'w') as json_file:
+                    json.dump(self.lst, json_file, indent=4)
+            else:
+                with open("results.json", 'w') as json_file:
+                    json.dump(self.lst, json_file, indent=4)
+
+    def sg_merge(self, datasets:list, how="outer", rt="pd"):
+        """
+            :param list datasets:           a list of dataframes or jsons
+            :param str how:                 (optional) join style either outer or inner       
+            :return:                        The data of given datasets in first index type
+            :rtype:                         pandas.DataFrame or list
+        """
+        df = datasets[0]
+        data_type = type(df)
+        if data_type == pd.DataFrame:
+            for i in datasets[1:]:
+                if type(i) != data_type:
+                    raise safeGraphError(f"*** each datasets' type must be the same: {data_type}, cannot be {type(i)}")
+                try:
+                    df = df.merge(i, how=how)
+                except pd.errors.MergeError as e:
+                    print(e)
+                except TypeError:
+                    print("*** weekly patterns cannot be merged for the current page: TOFIX")
+            self.__adjustments(df.to_dict("records"))
+        elif data_type == list:
+            # change arr's values othervise
+            r_dataset = []
+            for i in range(len(datasets)):
+                if type(datasets[i]) != data_type:
+                    raise safeGraphError(f"*** each datasets' type must be the same:{data_type}, cannot be {type(i)}")
+                r_dataset.append(pd.DataFrame.from_dict(datasets[i]))
+            return self.sg_merge(r_dataset, how=how, rt="ls")
+
+
+            for i in datasets[1:]:
+                df = df + i
+            self.__adjustments(df)  
+        if rt == "pd":      
+            return df
+        else:
+            return df.to_dict("records")
 
     def lookup(self, product, placekeys, columns, date="__default__", patterns_version="__default__", return_type="pandas"):
         """

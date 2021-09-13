@@ -27,13 +27,50 @@ placekeys = [
         "222-223@65y-rxx-djv", # (Walmart in Albany, NY)
         ] 
 
-def test_combine():
+def test_combine_list():
     sgql_client.date = {"date_range_start": "2021-07-10", "date_range_end": "2021-08-01"}
-    core = sgql_client.lookup(placekeys=placekeys, product="core", columns=["placekey", "brands", "naics_code"], return_type="pandas")
+    core = sgql_client.lookup(placekeys=placekeys, product="core", columns=["placekey", "brands", "naics_code"], 
+        return_type="list")
     sgql_client.save(path="core.csv")
-    geometry = sgql_client.lookup(placekeys=placekeys, product="geometry", columns=["placekey", "location_name", "street_address", "city", "enclosed"], return_type="pandas")
+    geometry = sgql_client.lookup(placekeys=placekeys, product="geometry", columns=["placekey", "location_name", "street_address", "city", "enclosed"], 
+        return_type="list")
     sgql_client.save(path="geometry.csv")
-    monthly_patterns = sgql_client.lookup(placekeys=placekeys, product="monthly_patterns", columns=["placekey", "date_range_start", "date_range_end","raw_visit_counts", "raw_visitor_counts"], return_type="pandas")
+    #monthly_patterns = sgql_client.lookup(placekeys=placekeys, product="monthly_patterns", columns=["placekey", "date_range_start", "date_range_end","raw_visit_counts", "raw_visitor_counts"], return_type="pandas")
+    monthly_patterns = sgql_client.lookup(placekeys=placekeys, product="monthly_patterns", columns=["placekey", "date_range_start", "date_range_end","raw_visit_counts", "raw_visitor_counts"], 
+        return_type="list")
+    sgql_client.save(path="monthly_patterns.csv")
+    arr_ = [ core, geometry, monthly_patterns ]
+    inner_df = sgql_client.sg_merge(arr_, how="inner")
+    sgql_client.save(path="inner_df.csv")
+    outer_df = sgql_client.sg_merge(arr_, how="outer")
+    sgql_client.save(path="outer_df.csv")
+    columns = []
+    for i in arr_:
+        for j in i:
+            columns += [k for k in j if k not in columns]
+    assert len(columns) == len([i for i in inner_df[0]])
+    assert len(columns) == len([i for i in outer_df[0]])
+    # weekly pattterns error case
+    weekly_patterns = sgql_client.lookup(placekeys=placekeys, product="weekly_patterns", columns=["placekey", "brands", "visitor_home_cbgs", "distance_from_home", "related_same_day_brand"], 
+        return_type="list")
+    arr_ = [ core, geometry, monthly_patterns, weekly_patterns ]
+    try:
+        inner_df = sgql_client.sg_merge(arr_, how="inner")
+        # outer_df = sgql_client.sg_merge(arr_, how="outer")
+    except Exception as e:
+        assert type(e) == TypeError
+
+def test_combine_pandas():
+    sgql_client.date = {"date_range_start": "2021-07-10", "date_range_end": "2021-08-01"}
+    core = sgql_client.lookup(placekeys=placekeys, product="core", columns=["placekey", "brands", "naics_code"], 
+        return_type="pandas")
+    sgql_client.save(path="core.csv")
+    geometry = sgql_client.lookup(placekeys=placekeys, product="geometry", columns=["placekey", "location_name", "street_address", "city", "enclosed"], 
+        return_type="pandas")
+    sgql_client.save(path="geometry.csv")
+    #monthly_patterns = sgql_client.lookup(placekeys=placekeys, product="monthly_patterns", columns=["placekey", "date_range_start", "date_range_end","raw_visit_counts", "raw_visitor_counts"], return_type="pandas")
+    monthly_patterns = sgql_client.lookup(placekeys=placekeys, product="monthly_patterns", columns=["placekey", "date_range_start", "date_range_end","raw_visit_counts", "raw_visitor_counts"], 
+        return_type="pandas")
     sgql_client.save(path="monthly_patterns.csv")
     arr_ = [ core, geometry, monthly_patterns ]
     inner_df = sgql_client.sg_merge(arr_, how="inner")
@@ -46,8 +83,9 @@ def test_combine():
     assert len(columns) == inner_df.shape[1]
     assert len(columns) == outer_df.shape[1]
     # weekly pattterns error case
-    weekly_patterns = sgql_client.lookup(placekeys=placekeys, product="weekly_patterns", columns=["placekey", "brands", "visitor_home_cbgs", "distance_from_home", "related_same_day_brand"], return_type="pandas")
-    arr_ = [ core, geometry, monthly_patterns, weekly_patterns]
+    weekly_patterns = sgql_client.lookup(placekeys=placekeys, product="weekly_patterns", columns=["placekey", "brands", "visitor_home_cbgs", "distance_from_home", "related_same_day_brand"], 
+        return_type="pandas")
+    arr_ = [ core, geometry, monthly_patterns, weekly_patterns ]
     try:
         inner_df = sgql_client.sg_merge(arr_, how="inner")
         # outer_df = sgql_client.sg_merge(arr_, how="outer")
