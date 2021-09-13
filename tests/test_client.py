@@ -27,6 +27,28 @@ placekeys = [
         "222-223@65y-rxx-djv", # (Walmart in Albany, NY)
         ] 
 
+def test_combine():
+    sgql_client.date = {"date_range_start": "2021-07-10", "date_range_end": "2021-08-01"}
+    core = sgql_client.lookup(placekeys=placekeys, product="core", columns=["placekey", "brands", "naics_code"], return_type="pandas")
+    geometry = sgql_client.lookup(placekeys=placekeys, product="geometry", columns=["placekey", "location_name", "street_address", "city", "enclosed"], return_type="pandas")
+    monthly_patterns = sgql_client.lookup(placekeys=placekeys, product="monthly_patterns", columns=["placekey", "date_range_start", "date_range_end","raw_visit_counts", "raw_visitor_counts"], return_type="pandas")
+    arr_ = [ core, geometry, monthly_patterns ]
+    inner_df = sgql_client.sg_merge(arr_, how="inner")
+    outer_df = sgql_client.sg_merge(arr_, how="outer")
+    columns = []
+    for i in arr_:
+        columns += [i for i in i.columns if i not in columns]
+    assert len(columns) == inner_df.shape[1]
+    assert len(columns) == outer_df.shape[1]
+    # weekly pattterns error case
+    weekly_patterns = sgql_client.lookup(placekeys=placekeys, product="weekly_patterns", columns=["placekey", "brands", "visitor_home_cbgs", "distance_from_home", "related_same_day_brand"], return_type="pandas")
+    arr_ = [ core, geometry, monthly_patterns, weekly_patterns]
+    try:
+        inner_df = sgql_client.sg_merge(arr_, how="inner")
+        # outer_df = sgql_client.sg_merge(arr_, how="outer")
+    except Exception as e:
+        assert type(e) == TypeError
+
 def test_get_place_by_locatian_name_address():
     sgql_client.date = ["2018-06-05", "2019-06-05", "2020-06-05", "2021-06-05"]
     # safegraph_core
@@ -52,7 +74,6 @@ def test_get_place_by_locatian_name_address():
     # safegraph_weekly_patterns
     weekly = sgql_client.lookup_by_name(product="weekly_patterns", location_name= "Taco Bell", street_address= "710 3rd St", city= "San Francisco", region= "CA", iso_country_code= "US", return_type="pandas", columns=["related_same_week_brand", "related_same_day_brand", "bucketed_dwell_times"])
     type(weekly) == df_type
-    import pdb;pdb.set_trace()
 
 def test_search(): 
     sgql_client.date = ["2021-05-05", "2021-06-05", "2021-04-05"]
@@ -101,6 +122,7 @@ def test_lookup():
         return_type="pandas")
     except Exception as e:
         assert(type(e) == ValueError)
+
 
 # def test_safegraph_weekly_patterns():
 #     sgql_client.date = ["2021-08-05", "2021-08-12", "2021-08-19"]

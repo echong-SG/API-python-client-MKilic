@@ -101,7 +101,7 @@ class HTTP_Client:
 
     def save(self, path="__default__", return_type="__default__"):
         """
-            :param str path:                 (optional) location of the file e.g: "results.csv"
+            :param str path:                  (optional) location of the file e.g: "results.csv"
                 saves as a .json file if return_type was "list" 
                 saves as a .csv file if return_type was "pandas"
                 if path is not given saves to current location as results.csv or results.json
@@ -122,6 +122,33 @@ class HTTP_Client:
             else:
                 with open("results.json", 'w') as json_file:
                     json.dump(self.lst, json_file, indent=4)
+
+    def sg_merge(self, datasets:list, how="outer"):
+        """
+            :param list datasets:           a list of dataframes or jsons
+            :param str how:                 (optional) join style either outer or inner       
+            :return:                        The data of given datasets in first index type
+            :rtype:                         pandas.DataFrame or list
+        """
+        df = datasets[0]
+        data_type = type(df)
+        if data_type == pd.DataFrame:
+            for i in datasets[1:]:
+                if type(i) != data_type:
+                    raise safeGraphError(f"*** each datasets' type must be the same cannot be {type(i)}")
+                data_type = type(i)
+                try:
+                    df = df.merge(i, how=how)
+                except pd.errors.MergeError as e:
+                    print(e)
+                except TypeError:
+                    print("*** weekly patterns cannot be merged for the current page: TOFIX")
+        elif data_type == type(list):
+            for i in datasets[1:]:
+                if type(i) != data_type:
+                    raise safeGraphError(f"*** each datasets' type must be the same cannot be {type(i)}")
+                data_type = type(i)
+        return df
 
     def __column_check_raise(self, columns):
         dict_ = {el:0 for el in columns}
