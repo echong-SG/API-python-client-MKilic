@@ -2,7 +2,7 @@
 
 A Python library for accessing [SafeGraph data](https://docs.safegraph.com/docs/about-safegraph) through [SafeGraph's GraphQL API](https://docs.safegraph.com/reference#places-api-overview-new). 
 
-Please see the [SafeGraph API documentation](https://docs.safegraph.com/reference) for further information on GraphQL, available dataset, query types, use cases, and FAQs.
+Please see the [SafeGraph API documentation](https://docs.safegraph.com/reference) for further information on GraphQL, available datasets, query types, use cases, and FAQs.
 
 Please file issues on this repository for bugs or feature requests specific to this Python client. For bugs or feature requests related to the SafeGraph API itself, please contact [...]
 
