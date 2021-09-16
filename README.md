@@ -12,7 +12,7 @@ Please file issues on this repository for bugs or feature requests specific to t
 
 **[Geometry](https://docs.safegraph.com/docs/geometry-data)**: POI footprints with spatial hierarchy metadata depicting when child polygons are contained by parents or when two tenants share the same polygon. Available for ~9.2MM POI (Geometry metadata not provided for closed POIs).
 
-**[Patterns](https://docs.safegraph.com/docs/monthly-patterns)**: Place, traffic, and demographic aggregations that answer: how often people visit, how long they stay, where they came from, where else they go, and more. Available for ~4.5MM POI in weekly and monthly versions. _Historical data dating back to January 2018 is available via the API for the weekly version of Patterns only._
+**[Patterns](https://docs.safegraph.com/docs/monthly-patterns)**: Place, traffic, and demographic aggregations that answer: how often people visit, how long they stay, where they came from, where else they go, and more. Available for ~4.5MM POI in weekly and monthly versions. _Historical data dating back to January 2018 is available via the API for the weekly version of Patterns only. For the monthly version of Patterns, only the most recent month is available via the API._
 
 # Installation
 
@@ -32,6 +32,10 @@ sgql_client = client.HTTP_Client("MY_API_KEY")
 ```
 
 Use the `sgql_client` object to make requests!
+
+## Outputs
+
+By default, query functions in safegraphQL return pandas DataFrames. See the `return_type` parameter below for how to return a JSON response object instead.
 
 ## `lookup()`
 
