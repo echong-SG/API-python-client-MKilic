@@ -33,7 +33,6 @@ class HTTP_Client:
         self.max_results = 20
         self.errors = []
         self._date = [datetime.now().strftime("%Y-%m-%d")]
-        self.patterns_version = "weekly"
         self._date_min_ = datetime.strptime("2018-01-01", '%Y-%m-%d')
 
     def __str__(self):
@@ -45,6 +44,8 @@ class HTTP_Client:
 
     @date.setter
     def date(self, value):
+        if value == "__default__":
+            return
         self._round_date(value)
 
     def _round_date(self, value):
@@ -132,17 +133,6 @@ class HTTP_Client:
         w_run_ = 1 # for weekly patterns
         query = ""
         data_type = []
-        # data_pull = [i.rstrip(".*") for i in columns if i in INNER_DATASET]
-        # if columns == "*":
-        #     # if all data from all datasets wanted
-        #     if self.patterns_version == "weekly":
-        #         __PATTERNS__arr = ["safegraph_weekly_patterns", "safegraph_core", "safegraph_geometry"]
-        #     else:
-        #         __PATTERNS__arr = ["safegraph_monthly_patterns", "safegraph_core", "safegraph_geometry"]
-        #     for i in __PATTERNS__arr:
-        #         for j in __PATTERNS__[i]:
-        #             query += __PATTERNS__[i][j] + " "
-        #     data_type = __PATTERNS__arr
         if product == "safegraph_core.*":
             # if all data from safegraph_core
             pattern_pick = __PATTERNS__["safegraph_core"]
@@ -206,21 +196,12 @@ class HTTP_Client:
         query = ""
         product = product.rstrip(".*")
         pattern_pick = __PATTERNS__[product]
-        # if columns == "safegraph_monthly_patterns.*" or columns == "*" and self.patterns_version == "monthly":
-        #     # if all data from safegraph_monthly_patterns
-        #     for j in __PATTERNS__["safegraph_monthly_patterns"]:
-        #         query += __PATTERNS__['safegraph_monthly_patterns'][j] + " "
-        #     data_type = ["safegraph_monthly_patterns"]
-        if self.patterns_version == "monthly":
-            return "", False
-        #if product ==
-        else: # self.patterns_version == "weekly"
-            available_columns = (lambda x: [j for j in pattern_pick if j not in ["__header__", "__footer__"]] if x=="*" else [j for j in pattern_pick if j in columns] )(columns)
-            query += pattern_pick["__header__"] + " "
-            for j in available_columns:
-                query += pattern_pick[j] + " "
-            query += pattern_pick["__footer__"] + " "
-            data_type = [product]
+        available_columns = (lambda x: [j for j in pattern_pick if j not in ["__header__", "__footer__"]] if x=="*" else [j for j in pattern_pick if j in columns] )(columns)
+        query += pattern_pick["__header__"] + " "
+        for j in available_columns:
+            query += pattern_pick[j] + " "
+        query += pattern_pick["__footer__"] + " "
+        data_type = [product]
         return query, data_type
 
     def __adjustments(self, data_frame):
@@ -246,41 +227,6 @@ class HTTP_Client:
         n = 500
         for i in range(0, len(lst), n):
             yield lst[i:i + n]
-
-    def _date_setter(self, patterns_version, date):
-        if patterns_version == "monthly":
-            raise safeGraphError('''
-                *** Currently, only the most recent month of Monthly Patterns can be accessed via the SafeGraph API. For historical data, please query Weekly Patterns data.
-            ''')
-        if date != "__default__" and patterns_version != "__default__":
-            self.patterns_version = patterns_version
-            self.date = date
-        elif patterns_version != "__default__" and date == "__default__":
-            raise safeGraphError('''*** date of HTTP_Client has to be set
-                >>> from safegraphql import client
-                >>> sgql_client = client.HTTP_Client("MY_API_KEY")
-                >>> sgql_client.patterns_version="weekly"
-                >>> sgql_client.date = ["2021-08-05", "2021-08-12", "2021-08-19"]
-                >>> sgql_client.date = "2021-08-05"
-                >>> sgql_client.date = {"date_range_start": "2021-01-05", "date_range_end": "2021-08-01"}
-                >>> df = sgql_client.lookup(placekeys, columns="*")
-                # or
-                >>> df = sgql_client.lookup(placekeys, columns="*", date="2021-08-05", patterns_version="weekly")
-            ''')
-        elif date != "__default__" and patterns_version == "__default__":
-            raise safeGraphError('''*** patterns_version of HTTP_Client has to be set to weekly in order to make date spesific calculations
-                >>> from safegraphql import client
-                >>> sgql_client = client.HTTP_Client("MY_API_KEY")
-                >>> sgql_client.patterns_version="weekly"
-                >>> sgql_client.date = ["2021-08-05", "2021-08-12", "2021-08-19"]
-                >>> sgql_client.date = "2021-08-05"
-                >>> sgql_client.date = {"date_range_start": "2021-01-05", "date_range_end": "2021-08-01"}
-                >>> df = sgql_client.lookup(placekeys, columns="*")
-                # or
-                >>> df = sgql_client.lookup(placekeys, columns="*", date="2021-08-05", patterns_version="weekly")
-            ''')
-
-
 
     def save(self, path="__default__", return_type="__default__"):
         """
@@ -344,7 +290,7 @@ class HTTP_Client:
         else:
             return df.to_dict("records")
 
-    def lookup(self, product, placekeys, columns, date="__default__", patterns_version="__default__", return_type="pandas"):
+    def lookup(self, product:str, placekeys:list, columns, date="__default__", return_type="pandas"):
         """
             :param list placekeys:          Unique Placekey ID/IDs inside an array
                 [ a single placekey string or a list of placekeys are both acceptable ]
@@ -355,16 +301,16 @@ class HTTP_Client:
             :return:                        The data of given placekeys in return_type
             :rtype:                         pandas.DataFrame or dict
         """
-        self._date_setter(patterns_version, date)
+        self.date = date
         self.return_type = return_type
         product = f"safegraph_{product}.*"
         params = {"placekeys": placekeys}
         # save non weekly and monthly pattern first then the rest
         first_run = 1 # for the first pull, pull all data the rest only weekly
         data_frame = []
-        print(f"\n\n\n\tlookup: {product=},{columns=},{date=},{patterns_version=},{return_type=}\n\n\n")
-        for i in self._date:
-            print("\n\t "+i+"\n")
+        # print(f"\n\n\n\tlookup: {product=},{columns=},{date=},{return_type=}\n\n\n")
+        for i in self.date:
+            # print("\n\t "+i+"\n")
             if first_run:
                 dataset, data_type = self.__dataset(product, columns)
                 first_run = 0 
@@ -375,7 +321,7 @@ class HTTP_Client:
                 if dataset == "":
                     continue
             dataset = dataset.replace("_DATE_", f'"{i}"')
-            print(dataset+"\n")
+            # print(dataset+"\n")
             query = gql(
                 f"""query($placekeys: [Placekey!]) {{
                     batch_lookup(placekeys: $placekeys) {{
@@ -406,7 +352,7 @@ class HTTP_Client:
         else:
             raise safeGraphError(f'return_type "{return_type}" does not exist')
 
-    def lookup_by_name(self, product, columns,
+    def lookup_by_name(self, product:str, columns,
             location_name:str=None, 
             street_address:str=None, 
             city:str=None, 
@@ -414,7 +360,7 @@ class HTTP_Client:
             iso_country_code:str=None, 
             postal_code:str=None,
             latitude:float=None, longitude:float=None, 
-            date="__default__", patterns_version="__default__", return_type="pandas"):
+            date="__default__", return_type="pandas"):
         """
             :param str location_name:       location_name of the desidred lookup
             :param str street_address:      street_address of the desidred lookup
@@ -445,8 +391,8 @@ When querying by location & address, it's necessary to have at least the followi
     location_name + latitude + longitude + iso_country_code
             ''')
 
+        self.date = date
         self.return_type = return_type
-        self._date_setter(patterns_version, date)
         product = f"safegraph_{product}.*"
         params = f"""
 {(lambda x,y: f' {x}: "{y}" ' if y!=None else "")("location_name", location_name)}
@@ -458,18 +404,11 @@ When querying by location & address, it's necessary to have at least the followi
 {(lambda x,y: f' {x}: {float(y)} ' if y!=None else "")("latitude", latitude)}
 {(lambda x,y: f' {x}: {float(y)} ' if y!=None else "")("longitude", longitude)}
 """
-        # params = {
-        #     "location_name": location_name, 
-        #     "street_address": street_address, 
-        #     "city": city, 
-        #     "region": region, 
-        #     "iso_country_code": iso_country_code
-        # }
         first_run = 1
         data_frame = []
-        print(f"\n\n\n\tlookup_by_name: {product=},{columns=},{date=},{patterns_version=},{return_type=}\n\n\n")
-        for i in self._date:
-            print("\n\t"+i+"\n")
+        # print(f"\n\n\n\tlookup_by_name: {product=},{columns=},{date=},{return_type=}\n\n\n")
+        for i in self.date:
+            # print("\n\t"+i+"\n")
             if first_run:
                 dataset, data_type = self.__dataset(product, columns)
                 first_run = 0 
@@ -480,7 +419,7 @@ When querying by location & address, it's necessary to have at least the followi
                 if dataset == "":
                     continue
             dataset = dataset.replace("_DATE_", f'"{i}"')
-            print(dataset+"\n")
+            # print(dataset+"\n")
             query = gql(
                 f"""query {{
                     lookup(query: {{
@@ -519,8 +458,7 @@ When querying by location & address, it's necessary to have at least the followi
         location_name:str=None, street_address:str=None, city:str=None, region:str=None, postal_code:str=None, iso_country_code:str=None,
         max_results:int=20,
         after_result_number:int=0,
-        date:str="__default__", patterns_version:str="__default__",
-        return_type:str="pandas"):
+        date:str="__default__",  return_type:str="pandas"):
         """
             :param columns:                 list or str 
                 "*" as string for all or desired column(s) in a [list]
@@ -543,10 +481,9 @@ When querying by location & address, it's necessary to have at least the followi
         #################################################        |```|  /\   |````|
         self.max_results = max_results    ##################     |\``  / _\  |    |
         self.return_type = return_type    ###################    | \  /    \ |____|__
-        # self.errors = []                #################
+        self.date = date                  #################
         #################################################
                                           ############
-        self._date_setter(patterns_version, date)
         product = f"safegraph_{product}.*"
         params = f"""
 {(lambda x,y: f' {x}: "{y}" ' if y!=None else "")("brand", brand)}
@@ -568,12 +505,12 @@ When querying by location & address, it's necessary to have at least the followi
         output = []
         chunks = self.__chunks()
         data_frame = []
-        print(f"\n\n\n\tsearch: {columns=},{date=},{patterns_version=},{return_type=}\n\n\n")
+        # print(f"\n\n\n\tsearch: {columns=},{date=},{return_type=}\n\n\n")
         for chu in chunks:
             first = len(chu)
             first_run = 1 # for the first pull, pull all data the rest only weekly
             data_frame = []
-            for i in self._date:
+            for i in self.date:
                 print("\n\t "+i+"\n")
                 if first_run:
                     dataset, data_type = self.__dataset(product, columns)
@@ -585,7 +522,7 @@ When querying by location & address, it's necessary to have at least the followi
                     if dataset == "":
                         continue
                 dataset = dataset.replace("_DATE_", f'"{i}"')
-                print(dataset+"\n")
+                # print(dataset+"\n")
                 query = gql(
                     f"""query {{
                         search(first: {first} after: {after+after_result_number} filter: {{

@@ -5,7 +5,7 @@ DIRECTORY = os.path.dirname(__file__)
 
 #REQUIREMENTS = open(os.path.join(DIRECTORY, "REQUIREMENTS.txt")).read().split()
 VERSION = open(os.path.join(DIRECTORY, "safegraphql", "__version__.py")).read()
-READ_ME = open(os.path.join(DIRECTORY, "README.rst")).read()
+READ_ME = open(os.path.join(DIRECTORY, "README.md")).read()
 
 setup(
     name='safegraphQL',
