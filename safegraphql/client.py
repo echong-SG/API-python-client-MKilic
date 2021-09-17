@@ -585,7 +585,7 @@ When querying by location & address, it's necessary to have at least the followi
                 for j in data_type:
                     try:
                         dict_.update(out[j])
-                        dict_['placekey'] = (place['placekey'])
+                        dict_['placekey'] = (out['placekey'])
                     except TypeError:
                         # 'safegraph_weekly_patterns': None
                         pass
