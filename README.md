@@ -156,7 +156,7 @@ sgql_client.lookup(product = 'core', placekeys = pk, columns = '*')
 sgql_client.save()
 
 # saved file will be results.json
-sgql_client.lookup(product = 'core', placekeys = pk, columns = '*', return_type = 'list)
+sgql_client.lookup(product = 'core', placekeys = pk, columns = '*', return_type = 'list')
 sgql_client.save()
 
 # saved file will be safegraph_data.csv
