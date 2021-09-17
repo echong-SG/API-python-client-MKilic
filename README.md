@@ -61,10 +61,10 @@ geo = sgql_client.lookup(product = 'geometry', placekeys = pk, columns = '*')
 patterns = sgql_client.lookup(product = 'monthly_patterns', placekeys = pk, columns = '*')
 ```
 
-!!UNDER DEV!! Query the most recent Weekly Patterns data
+Query the most recent Weekly Patterns data
 
 ```python
-watterns = sgql_client.lookup(product = 'weekly_patterns', placekeys = pk, columns = cols)
+watterns = sgql_client.lookup(product = 'weekly_patterns', placekeys = pk, columns = '*')
 ```
 
 Query an arbitrary set of columns from a dataset.
