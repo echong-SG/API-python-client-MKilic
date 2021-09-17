@@ -511,7 +511,7 @@ When querying by location & address, it's necessary to have at least the followi
             first_run = 1 # for the first pull, pull all data the rest only weekly
             data_frame = []
             for i in self.date:
-                print("\n\t "+i+"\n")
+                # print("\n\t "+i+"\n")
                 if first_run:
                     dataset, data_type = self.__dataset(product, columns)
                     first_run = 0 

@@ -29,7 +29,36 @@ placekeys = [
         "222-223@65y-rxx-djv", # (Walmart in Albany, NY)
         ]
 
+# placekey without many visits
+sparse_pk = '228-222@63s-dvy-9cq' # Fu Wah Mini Market in Philadelphia
 
+# array of dates
+dates = [
+    '2021-08-24', 
+    '2020-08-25', 
+    '2018-08-25'
+]
+cols = [
+    'safegraph_core.*',
+    'placekey',
+    'location_name',
+    'street_address',
+    'city',
+    'region',
+    'brands',
+    'date_range_start',
+    'raw_visit_counts',
+    'visits_by_day'
+]
+
+data = sgql_client.lookup(
+    product = 'weekly_patterns',
+    placekeys = sparse_pk, 
+    date = dates,
+    columns = cols
+)
+
+import pdb;pdb.set_trace()
 # misc. columns
 
 def test_EUGENE_case():
