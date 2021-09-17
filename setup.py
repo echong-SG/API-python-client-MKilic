@@ -12,7 +12,7 @@ setup(
     version=VERSION,
     description='graphQL API of safegraph.com using Python functions',
     long_description=READ_ME,
-    long_description_content_type="text/x-rst",
+    long_description_content_type="text/markdown",
     url="https://github.com/echong-SG/API-python-client-MKilic",
     author="Renas Mirkan Kilic",
     author_email="mirkanbaba1@gmail.com",
