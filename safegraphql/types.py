@@ -57,7 +57,7 @@ __PATTERNS__ = {
         "__footer__": "}"
     },
     "safegraph_monthly_patterns": {
-        "__header__": """safegraph_monthly_patterns {""",
+        "__header__": "safegraph_monthly_patterns _DATE_BLOCK_ {",
         # "placekey": "placekey",
         "parent_placekey": "parent_placekey",
         "location_name": "location_name",

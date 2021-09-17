@@ -1,30 +1,5 @@
-[
-    {
-        "placekey": "222-223@65y-rxx-djv",
-        "location_name": "Walmart Supercenter",
-        "street_address": "141 Washington Avenue Ext",
-        "city": "Albany",
-        "enclosed": false
-    },
-    {
-        "placekey": "224-222@5vg-7gv-d7q",
-        "location_name": "Taco Bell",
-        "street_address": "710 3rd St",
-        "city": "San Francisco",
-        "enclosed": false
-    },
-    {
-        "placekey": "zzw-222@8fy-fjg-b8v",
-        "location_name": "Walt Disney World Resort",
-        "street_address": "Walt Disney World Resort",
-        "city": "Orlando",
-        "enclosed": false
-    },
-    {
-        "placekey": "222-223@65y-rxx-djv",
-        "location_name": "O'Hare International Airport",
-        "street_address": "10000 Bessie Coleman Dr",
-        "city": "Franklin Park",
-        "enclosed": false
-    }
-]
+location_name,street_address,city,enclosed,placekey
+Walmart Supercenter,141 Washington Avenue Ext,Albany,False,222-223@65y-rxx-djv
+Taco Bell,710 3rd St,San Francisco,False,224-222@5vg-7gv-d7q
+Walt Disney World Resort,Walt Disney World Resort,Orlando,False,zzw-222@8fy-fjg-b8v
+O'Hare International Airport,10000 Bessie Coleman Dr,Franklin Park,False,zzy-227@5sb-8cw-pjv

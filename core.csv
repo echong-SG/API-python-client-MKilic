@@ -1,32 +1,5 @@
-[
-    {
-        "placekey": "222-223@65y-rxx-djv",
-        "brands": [
-            {
-                "brand_id": "SG_BRAND_04a8ca7bf49e7ecb4a32451676e929f0",
-                "brand_name": "Walmart Supercenter Canada"
-            }
-        ],
-        "naics_code": 452319
-    },
-    {
-        "placekey": "224-222@5vg-7gv-d7q",
-        "brands": [
-            {
-                "brand_id": "SG_BRAND_748ba381dd81bb8de615319837ffa350",
-                "brand_name": "Taco Bell"
-            }
-        ],
-        "naics_code": 722513
-    },
-    {
-        "placekey": "zzw-222@8fy-fjg-b8v",
-        "brands": [],
-        "naics_code": 713110
-    },
-    {
-        "placekey": "222-223@65y-rxx-djv",
-        "brands": [],
-        "naics_code": 531120
-    }
-]
+brands,naics_code,placekey
+"[{'brand_id': 'SG_BRAND_04a8ca7bf49e7ecb4a32451676e929f0', 'brand_name': 'Walmart Supercenter Canada'}]",452319,222-223@65y-rxx-djv
+"[{'brand_id': 'SG_BRAND_748ba381dd81bb8de615319837ffa350', 'brand_name': 'Taco Bell'}]",722513,224-222@5vg-7gv-d7q
+[],713110,zzw-222@8fy-fjg-b8v
+[],531120,zzy-227@5sb-8cw-pjv

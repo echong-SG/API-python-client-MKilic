@@ -348,8 +348,8 @@ class HTTP_Client:
             if date == '__default__':
                 dataset = dataset.replace("_DATE_BLOCK_", "")
             else:
-                dataset = dataset.replace("_DATE_BLOCK_", "(date: _DATE_ )")
-                dataset = dataset.replace("_DATE_", f'"{i}"')
+                dataset = dataset.replace("_DATE_BLOCK_", f'(date: "{i}" )')
+                # dataset = dataset.replace("_DATE_", f'"{i}"')
             # print(dataset+"\n")
             query = gql(
                 f"""query($placekeys: [Placekey!]) {{
@@ -449,7 +449,11 @@ When querying by location & address, it's necessary to have at least the followi
                 dataset, data_type = self.__dataset_WM(product, columns)
                 if dataset == "":
                     continue
-            dataset = dataset.replace("_DATE_", f'"{i}"')
+            if date == '__default__':
+                dataset = dataset.replace("_DATE_BLOCK_", "")
+            else:
+                dataset = dataset.replace("_DATE_BLOCK_", f'(date: "{i}" )')
+                # dataset = dataset.replace("_DATE_", f'"{i}"')
             # print(dataset+"\n")
             query = gql(
                 f"""query {{
@@ -466,7 +470,6 @@ When querying by location & address, it's necessary to have at least the followi
             for j in data_type:
                 try:
                     dict_.update(result['lookup'][j])
-                    dict_['placekey'] = (place['placekey'])
                 except TypeError:
                     # 'safegraph_weekly_patterns': None
                     pass
@@ -558,7 +561,11 @@ When querying by location & address, it's necessary to have at least the followi
                     dataset, data_type = self.__dataset_WM(product, columns)
                     if dataset == "":
                         continue
-                dataset = dataset.replace("_DATE_", f'"{i}"')
+                if date == '__default__':
+                    dataset = dataset.replace("_DATE_BLOCK_", "")
+                else:
+                    dataset = dataset.replace("_DATE_BLOCK_", f'(date: "{i}" )')
+                # dataset = dataset.replace("_DATE_", f'"{i}"')
                 # print(dataset+"\n")
                 query = gql(
                     f"""query {{
@@ -575,7 +582,6 @@ When querying by location & address, it's necessary to have at least the followi
                 except Exception as e:
                     print("\n\n\n\t*** ERROR ***\n\n\n")
                     raise e
-                    #if type(e) == ConnectionError:
                     result = {'search': []}
                     self.errors.append(f"{after+after_result_number}-{first+after+after_result_number}")
                 output+=result['search']
@@ -587,9 +593,7 @@ When querying by location & address, it's necessary to have at least the followi
                         dict_.update(out[j])
                         dict_['placekey'] = (out['placekey'])
                     except TypeError:
-                        # 'safegraph_weekly_patterns': None
                         pass
-                # dict_['placekey'] = out["placekey"]
                 data_frame.append(dict_)
 
         self.__lengthCheck__(data_frame)
