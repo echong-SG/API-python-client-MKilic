@@ -16,7 +16,7 @@ class safeGraphError(Exception):
     pass
 
 class HTTP_Client:
-    def __init__(self, apikey, max_tries=3):
+    def __init__(self, apikey, max_tries=10):
         self.df = pd.DataFrame()
         self.lst = [] 
         self.url = 'https://api.safegraph.com/v1/graphql'
@@ -44,8 +44,6 @@ class HTTP_Client:
 
     @date.setter
     def date(self, value):
-        if value == "__default__":
-            return
         self._round_date(value)
 
     def _round_date(self, value):
@@ -207,8 +205,20 @@ class HTTP_Client:
     def __adjustments(self, data_frame):
         self.lst = data_frame
         self.__change_value_types_lst()
-        self.df = pd.DataFrame.from_dict(data_frame)
+        self.__none_found_delete()
+        self.df = pd.DataFrame.from_dict(self.lst)
         self.__change_value_types_pandas()
+
+    def __none_found_delete(self):
+        """If element of a column from query's value is null, deletes that column
+                and keeps the rest"""
+        for l in reversed(range(len(self.lst))):
+            count = 0
+            for v in self.lst[l].keys():
+                if self.lst[l][v] == None:
+                    count+=1
+                if count >= len(self.lst[l])-1:
+                    self.lst.pop()
 
     def __lengthCheck__(self, data_frame):
         if len(data_frame) < 1:
@@ -290,7 +300,7 @@ class HTTP_Client:
         else:
             return df.to_dict("records")
 
-    def lookup(self, product:str, placekeys:list, columns, date="__default__", return_type="pandas"):
+    def lookup(self, product:str, placekeys:list, columns, date, return_type="pandas"):
         """
             :param list placekeys:          Unique Placekey ID/IDs inside an array
                 [ a single placekey string or a list of placekeys are both acceptable ]
@@ -329,7 +339,7 @@ class HTTP_Client:
                     {dataset}
                     }}
                 }}"""
-            ) 
+            )
             result = self.client.execute(query, variable_values=params)
             for place in result['batch_lookup']:
                 dict_ = {}
@@ -340,6 +350,7 @@ class HTTP_Client:
                         # 'safegraph_weekly_patterns': None
                         pass
                 data_frame.append(dict_)
+            dict_['placekey'] = result["batch_lookup"][0]['placekey']
 
         # adjustments
         # self.__lengthCheck__(data_frame) # not working in this function
@@ -352,7 +363,7 @@ class HTTP_Client:
         else:
             raise safeGraphError(f'return_type "{return_type}" does not exist')
 
-    def lookup_by_name(self, product:str, columns,
+    def lookup_by_name(self, product:str, columns, date,
             location_name:str=None, 
             street_address:str=None, 
             city:str=None, 
@@ -360,7 +371,7 @@ class HTTP_Client:
             iso_country_code:str=None, 
             postal_code:str=None,
             latitude:float=None, longitude:float=None, 
-            date="__default__", return_type="pandas"):
+            return_type="pandas"):
         """
             :param str location_name:       location_name of the desidred lookup
             :param str street_address:      street_address of the desidred lookup
@@ -390,7 +401,6 @@ When querying by location & address, it's necessary to have at least the followi
     location_name + street_address + postal_code + iso_country_code
     location_name + latitude + longitude + iso_country_code
             ''')
-
         self.date = date
         self.return_type = return_type
         product = f"safegraph_{product}.*"
@@ -438,6 +448,10 @@ When querying by location & address, it's necessary to have at least the followi
                 except TypeError:
                     # 'safegraph_weekly_patterns': None
                     pass
+            try:
+                dict_["placekey"] = result['lookup']['placekey']
+            except TypeError:
+                raise safeGraphError("*** query didnt match with an item")
             data_frame.append(dict_)
 
         # adjustments
@@ -451,14 +465,14 @@ When querying by location & address, it's necessary to have at least the followi
         else:
             raise safeGraphError(f'return_type "{return_type}" does not exist')
 
-    def search(self, product, columns,
+    def search(self, product, columns, date,
         # params
         brand:str=None, brand_id:str=None, naics_code:int=None, phone_number:str=None,
         # address with following sub-fields
         location_name:str=None, street_address:str=None, city:str=None, region:str=None, postal_code:str=None, iso_country_code:str=None,
         max_results:int=20,
         after_result_number:int=0,
-        date:str="__default__",  return_type:str="pandas"):
+        return_type:str="pandas"):
         """
             :param columns:                 list or str 
                 "*" as string for all or desired column(s) in a [list]
@@ -537,7 +551,7 @@ When querying by location & address, it's necessary to have at least the followi
                     result = self.client.execute(query)
                 except Exception as e:
                     print("\n\n\n\t*** ERROR ***\n\n\n")
-                    print(e)
+                    raise e
                     #if type(e) == ConnectionError:
                     result = {'search': []}
                     self.errors.append(f"{after+after_result_number}-{first+after+after_result_number}")

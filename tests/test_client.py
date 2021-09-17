@@ -28,16 +28,15 @@ placekeys = [
         ] 
 
 def test_combine_list():
-    sgql_client.date = {"date_range_start": "2021-07-10", "date_range_end": "2021-08-01"}
-    core = sgql_client.lookup(placekeys=placekeys, product="core", columns=["placekey", "brands", "naics_code"], 
-        return_type="list")
+    date = {"date_range_start": "2021-07-10", "date_range_end": "2021-08-01"}
+    core = sgql_client.lookup(placekeys=placekeys, product="core", columns=["placekey", "brands", "naics_code"], return_type="list", date=date)
     sgql_client.save(path="core.csv")
     geometry = sgql_client.lookup(placekeys=placekeys, product="geometry", columns=["placekey", "location_name", "street_address", "city", "enclosed"], 
-        return_type="list")
+        return_type="list", date=date)
     sgql_client.save(path="geometry.csv")
     #monthly_patterns = sgql_client.lookup(placekeys=placekeys, product="monthly_patterns", columns=["placekey", "date_range_start", "date_range_end","raw_visit_counts", "raw_visitor_counts"], return_type="pandas")
     monthly_patterns = sgql_client.lookup(placekeys=placekeys, product="monthly_patterns", columns=["placekey", "date_range_start", "date_range_end","raw_visit_counts", "raw_visitor_counts"], 
-        return_type="list")
+        return_type="list", date=date)
     sgql_client.save(path="monthly_patterns.csv")
     arr_ = [ core, geometry, monthly_patterns ]
     inner_df = sgql_client.sg_merge(arr_, how="inner")
@@ -51,8 +50,7 @@ def test_combine_list():
     assert len(columns) == len([i for i in inner_df[0]])
     assert len(columns) == len([i for i in outer_df[0]])
     # weekly pattterns error case
-    weekly_patterns = sgql_client.lookup(placekeys=placekeys, product="weekly_patterns", columns=["placekey", "brands", "visitor_home_cbgs", "distance_from_home", "related_same_day_brand"], 
-        return_type="list")
+    weekly_patterns = sgql_client.lookup(placekeys=placekeys, product="weekly_patterns", columns=["placekey", "brands", "visitor_home_cbgs", "distance_from_home", "related_same_day_brand"], return_type="list", date=date)
     arr_ = [ core, geometry, monthly_patterns, weekly_patterns ]
     try:
         inner_df = sgql_client.sg_merge(arr_, how="inner")
@@ -61,16 +59,16 @@ def test_combine_list():
         assert type(e) == TypeError
 
 def test_combine_pandas():
-    sgql_client.date = {"date_range_start": "2021-07-10", "date_range_end": "2021-08-01"}
+    date = ["2021-07-10", "2021-08-01", "2020-05-11"]
     core = sgql_client.lookup(placekeys=placekeys, product="core", columns=["placekey", "brands", "naics_code"], 
-        return_type="pandas")
+        return_type="pandas", date=date)
     sgql_client.save(path="core.csv")
     geometry = sgql_client.lookup(placekeys=placekeys, product="geometry", columns=["placekey", "location_name", "street_address", "city", "enclosed"], 
-        return_type="pandas")
+        return_type="pandas", date=date)
     sgql_client.save(path="geometry.csv")
     #monthly_patterns = sgql_client.lookup(placekeys=placekeys, product="monthly_patterns", columns=["placekey", "date_range_start", "date_range_end","raw_visit_counts", "raw_visitor_counts"], return_type="pandas")
     monthly_patterns = sgql_client.lookup(placekeys=placekeys, product="monthly_patterns", columns=["placekey", "date_range_start", "date_range_end","raw_visit_counts", "raw_visitor_counts"], 
-        return_type="pandas")
+        return_type="pandas", date=date)
     sgql_client.save(path="monthly_patterns.csv")
     arr_ = [ core, geometry, monthly_patterns ]
     inner_df = sgql_client.sg_merge(arr_, how="inner")
@@ -84,7 +82,7 @@ def test_combine_pandas():
     assert len(columns) == outer_df.shape[1]
     # weekly pattterns error case
     weekly_patterns = sgql_client.lookup(placekeys=placekeys, product="weekly_patterns", columns=["placekey", "brands", "visitor_home_cbgs", "distance_from_home", "related_same_day_brand"], 
-        return_type="pandas")
+        return_type="pandas", date=date)
     arr_ = [ core, geometry, monthly_patterns, weekly_patterns ]
     try:
         inner_df = sgql_client.sg_merge(arr_, how="inner")
@@ -93,9 +91,9 @@ def test_combine_pandas():
         assert type(e) == TypeError
 
 def test_get_place_by_locatian_name_address():
-    sgql_client.date = ["2018-06-05", "2019-06-05", "2020-06-05", "2021-06-05"]
+    date = ["2018-06-05", "2019-06-05", "2020-06-05", "2021-06-05"]
     # safegraph_core
-    assert type(sgql_client.lookup_by_name(
+    assert type(sgql_client.lookup_by_name(date=date, 
         product="core",
         location_name= "Taco Bell", 
         street_address= "710 3rd St", 
@@ -105,7 +103,7 @@ def test_get_place_by_locatian_name_address():
         return_type="pandas",
         columns="*")) == df_type
     # safegraph_geometry
-    assert type(sgql_client.lookup_by_name(
+    assert type(sgql_client.lookup_by_name(date=date, 
         product="geometry",
         location_name= "Taco Bell", 
         street_address= "710 3rd St", 
@@ -115,45 +113,45 @@ def test_get_place_by_locatian_name_address():
         return_type="list",
         columns="*")) == list
     # safegraph_weekly_patterns
-    weekly = sgql_client.lookup_by_name(product="weekly_patterns", location_name= "Taco Bell", street_address= "710 3rd St", city= "San Francisco", region= "CA", iso_country_code= "US", return_type="pandas", columns=["related_same_week_brand", "related_same_day_brand", "bucketed_dwell_times"])
+    weekly = sgql_client.lookup_by_name(date=date, product="weekly_patterns", location_name= "Taco Bell", street_address= "710 3rd St", city= "San Francisco", region= "CA", iso_country_code= "US", return_type="pandas", columns=["related_same_week_brand", "related_same_day_brand", "bucketed_dwell_times"])
     type(weekly) == df_type
 
 def test_search(): 
-    sgql_client.date = ["2021-05-05", "2021-06-05", "2021-04-05"]
+    date = ["2021-05-05", "2021-06-05", "2021-04-05"]
     # safegraph_core
     assert type(sgql_client.search( product="core", columns="*", brand = "starbucks", brand_id = None, naics_code = None, phone_number = None, street_address = None, city = None, region = None, postal_code = None, iso_country_code = None, 
-        max_results=70, after_result_number=10, return_type="pandas")) == df_type
+        max_results=70, after_result_number=10, return_type="pandas", date=date)) == df_type
     # safegraph_geometry
     assert type(sgql_client.search( product="geometry", brand = "starbucks", columns=["location_name", "street_address", "city", "enclosed", "latitude", "iso_country_code"], brand_id = None, naics_code = None, phone_number = None, street_address = None, city = None, region = None, postal_code = None, iso_country_code = None, 
-        max_results=55, after_result_number=15,  return_type="list")) == list
+        max_results=55, after_result_number=15,  return_type="list", date=date)) == list
     # safegraph_weekly_patterns
     naics_code = "445120"
-    assert type(sgql_client.search(product="weekly_patterns", columns =["median_dwell", "city", "brands", "visitor_home_cbgs", "distance_from_home", "related_same_day_brand"], naics_code = naics_code)) == df_type
+    assert type(sgql_client.search(product="weekly_patterns", columns =["median_dwell", "city", "brands", "visitor_home_cbgs", "distance_from_home", "related_same_day_brand"], naics_code = naics_code, date=date)) == df_type
 
     # safegraph_monthly_patterns
     try:
         city = 'fsahfsadhfsadkjfsadjf'
-        sgql_client.search(product="monthly_patterns", columns = "*", city = city)
+        sgql_client.search(product="monthly_patterns", columns = "*", city = city, date=date)
     except Exception as e:
         assert type(e) == client.safeGraphError
 
 def test_lookup():  
-    sgql_client.date = {"date_range_start": "2021-07-10", "date_range_end": "2021-08-01"}
+    date = {"date_range_start": "2021-07-10", "date_range_end": "2021-08-01"}
     # safegraph_core
-    assert type(sgql_client.lookup(placekeys=placekeys, product="core", columns="*", return_type="pandas")) == df_type
-    core = sgql_client.lookup(placekeys=placekeys, product="core", columns=["placekey", "brands", "naics_code"], return_type="pandas")
+    assert type(sgql_client.lookup(placekeys=placekeys, product="core", columns="*", return_type="pandas", date=date)) == df_type
+    core = sgql_client.lookup(placekeys=placekeys, product="core", columns=["placekey", "brands", "naics_code"], return_type="pandas", date=date)
     assert type(core) == df_type
     # safegraph_geometry
-    assert type(sgql_client.lookup(placekeys=placekeys, product="geometry", columns="*", return_type="pandas")) == df_type
-    geometry = sgql_client.lookup(placekeys=placekeys, product="geometry", columns=["location_name", "street_address", "city", "enclosed"], return_type="pandas")
+    assert type(sgql_client.lookup(placekeys=placekeys, product="geometry", columns="*", return_type="pandas", date=date)) == df_type
+    geometry = sgql_client.lookup(placekeys=placekeys, product="geometry", columns=["location_name", "street_address", "city", "enclosed"], return_type="pandas", date=date)
     assert type(geometry) == df_type
     # safegraph_weekly_patterns
-    assert type(sgql_client.lookup(placekeys=placekeys, product="weekly_patterns", columns="*", return_type="pandas")) == df_type
-    weekly_patterns = sgql_client.lookup(placekeys=placekeys, product="weekly_patterns", columns=["brands", "visitor_home_cbgs", "distance_from_home", "related_same_day_brand"], return_type="pandas")
+    assert type(sgql_client.lookup(placekeys=placekeys, product="weekly_patterns", columns="*", return_type="pandas", date=date)) == df_type
+    weekly_patterns = sgql_client.lookup(placekeys=placekeys, product="weekly_patterns", columns=["brands", "visitor_home_cbgs", "distance_from_home", "related_same_day_brand"], return_type="pandas", date=date)
     assert type(weekly_patterns) == df_type
     # safegraph_monthly_patterns
-    assert type(sgql_client.lookup(placekeys=placekeys, product="monthly_patterns", columns="*", return_type="pandas")) == df_type
-    monthly_patterns = sgql_client.lookup(placekeys=placekeys, product="monthly_patterns", columns=["date_range_start", "date_range_end","raw_visit_counts", "raw_visitor_counts"], return_type="pandas")
+    assert type(sgql_client.lookup(placekeys=placekeys, product="monthly_patterns", columns="*", return_type="pandas", date=date)) == df_type
+    monthly_patterns = sgql_client.lookup(placekeys=placekeys, product="monthly_patterns", columns=["date_range_start", "date_range_end","raw_visit_counts", "raw_visitor_counts"], return_type="pandas", date=date)
     assert type(monthly_patterns) == df_type
 
     try:
@@ -162,9 +160,40 @@ def test_lookup():
         columns=
             ["fakes", "fake2"] + 
             random.sample(arr,random.randint(1, len(arr))), 
-        return_type="pandas")
+        return_type="pandas", date=date)
     except Exception as e:
         assert(type(e) == ValueError)
+
+def test_non_weekly_date_req():
+    # weekly monthly
+    # safegraph_core                
+    date = {"date_range_start": "2021-07-10", "date_range_end": "2021-08-01"}                                                                                                                                                                                                                                                   
+    assert type(sgql_client.lookup(placekeys=placekeys, product="weekly_pattern", columns="*", return_type="list", date=date)) == list                                                                                                                                                      
+    core = sgql_client.lookup(placekeys=placekeys, product="weekly_pattern", columns="*", return_type="pandas", date=date)                                                                                                                                     
+    assert type(core) == df_type                              
+    # monthly_pattern                                                                                                                                                                                                                         
+    assert type(sgql_client.lookup(placekeys=placekeys, product="monthly_pattern", columns="*", return_type="list", date=date)) == list                                                                                                                                                      
+    core = sgql_client.lookup(placekeys=placekeys, product="monthly_pattern", columns="*", return_type="pandas", date=date)                                                                                                                                     
+    assert type(core) == df_type     
+
+    # NON weekly monthly
+    # safegraph_core
+    assert type(sgql_client.lookup(placekeys=placekeys, product="core", columns="*", return_type="pandas", date=date)) == df_type
+    core = sgql_client.lookup(placekeys=placekeys, product="core", columns=["placekey", "brands", "naics_code"], return_type="pandas", date=date)
+    assert type(core) == df_type
+    # safegraph_geometry
+    assert type(sgql_client.lookup(placekeys=placekeys, product="geometry", columns="*", return_type="pandas", date=date)) == df_type
+    geometry = sgql_client.lookup(placekeys=placekeys, product="geometry", columns=["location_name", "street_address", "city", "enclosed"], return_type="pandas", date=date)
+    assert type(geometry) == df_type
+    # safegraph_weekly_patterns
+    assert type(sgql_client.lookup(placekeys=placekeys, product="weekly_patterns", columns="*", return_type="pandas", date=date)) == df_type
+    weekly_patterns = sgql_client.lookup(placekeys=placekeys, product="weekly_patterns", columns=["brands", "visitor_home_cbgs", "distance_from_home", "related_same_day_brand"], return_type="pandas", date=date)
+    assert type(weekly_patterns) == df_type
+    # safegraph_monthly_patterns
+    assert type(sgql_client.lookup(placekeys=placekeys, product="monthly_patterns", columns="*", return_type="pandas", date=date)) == df_type
+    monthly_patterns = sgql_client.lookup(placekeys=placekeys, product="monthly_patterns", columns=["date_range_start", "date_range_end","raw_visit_counts", "raw_visitor_counts"], return_type="pandas", date=date)
+    assert type(monthly_patterns) == df_type
+
 
 
 # def test_safegraph_weekly_patterns():

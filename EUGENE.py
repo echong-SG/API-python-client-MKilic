@@ -51,14 +51,18 @@ cols = [
     'visits_by_day'
 ]
 
-data = sgql_client.lookup(
-    product = 'weekly_patterns',
-    placekeys = sparse_pk, 
-    date = dates,
-    columns = cols
-)
-
+# data = sgql_client.lookup(product = 'weekly_patterns',placekeys = sparse_pk, date = dates,columns = cols)
+_lookup = sgql_client.lookup_by_name(date="2021-06-11", 
+        product="core",
+        location_name= "Taco Bell", 
+        street_address= "710 3rd St", 
+        city= "San Francisco", 
+        region= "CA", 
+        iso_country_code= "US",
+        return_type="pandas",
+        columns="*")
 import pdb;pdb.set_trace()
+
 # misc. columns
 
 def test_EUGENE_case():

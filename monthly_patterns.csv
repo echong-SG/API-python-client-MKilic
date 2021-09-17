@@ -1,5 +1,30 @@
-placekey,date_range_start,date_range_end,raw_visit_counts,raw_visitor_counts
-222-223@65y-rxx-djv,2021-08-01T00:00:00-04:00,2021-09-01T00:00:00-04:00,4453,2873
-224-222@5vg-7gv-d7q,2021-08-01T00:00:00-07:00,2021-09-01T00:00:00-07:00,185,112
-zzw-222@8fy-fjg-b8v,2021-08-01T00:00:00-04:00,2021-09-01T00:00:00-04:00,646366,124362
-zzy-227@5sb-8cw-pjv,2021-08-01T00:00:00-05:00,2021-09-01T00:00:00-05:00,274595,100615
+[
+    {
+        "placekey": "222-223@65y-rxx-djv",
+        "date_range_start": "2021-08-01T00:00:00-04:00",
+        "date_range_end": "2021-09-01T00:00:00-04:00",
+        "raw_visit_counts": 4453,
+        "raw_visitor_counts": 2873
+    },
+    {
+        "placekey": "224-222@5vg-7gv-d7q",
+        "date_range_start": "2021-08-01T00:00:00-07:00",
+        "date_range_end": "2021-09-01T00:00:00-07:00",
+        "raw_visit_counts": 185,
+        "raw_visitor_counts": 112
+    },
+    {
+        "placekey": "zzw-222@8fy-fjg-b8v",
+        "date_range_start": "2021-08-01T00:00:00-04:00",
+        "date_range_end": "2021-09-01T00:00:00-04:00",
+        "raw_visit_counts": 646366,
+        "raw_visitor_counts": 124362
+    },
+    {
+        "placekey": "222-223@65y-rxx-djv",
+        "date_range_start": "2021-08-01T00:00:00-05:00",
+        "date_range_end": "2021-09-01T00:00:00-05:00",
+        "raw_visit_counts": 274595,
+        "raw_visitor_counts": 100615
+    }
+]
