@@ -283,10 +283,14 @@ class HTTP_Client:
         df = datasets[0]
         data_type = type(df)
         if data_type == pd.DataFrame:
+            df_cols = list(df.columns)
+            df_cols.remove('placekey')
             for i in datasets[1:]:
                 if type(i) != data_type:
                     raise safeGraphError(f"*** each datasets' type must be the same: {data_type}, cannot be {type(i)}")
                 try:
+                    drop_cols = [col for col in i.columns if col in df_cols]
+                    i = i.drop(drop_cols, axis=1)
                     df = df.merge(i, how=how)
                 except pd.errors.MergeError as e:
                     print(e)
@@ -351,21 +355,22 @@ class HTTP_Client:
                 f"""query($placekeys: [Placekey!]) {{
                     batch_lookup(placekeys: $placekeys) {{
                         placekey
-                    {dataset}
+                        {dataset}
                     }}
                 }}"""
             )
+            
             result = self.client.execute(query, variable_values=params)
             for place in result['batch_lookup']:
                 dict_ = {}
                 for j in data_type:
                     try:
                         dict_.update(place[j])
+                        dict_['placekey'] = (place['placekey'])
                     except TypeError:
                         # 'safegraph_weekly_patterns': None
                         pass
                 data_frame.append(dict_)
-            dict_['placekey'] = result["batch_lookup"][0]['placekey']
 
         # adjustments
         # self.__lengthCheck__(data_frame) # not working in this function
@@ -461,6 +466,7 @@ When querying by location & address, it's necessary to have at least the followi
             for j in data_type:
                 try:
                     dict_.update(result['lookup'][j])
+                    dict_['placekey'] = (place['placekey'])
                 except TypeError:
                     # 'safegraph_weekly_patterns': None
                     pass
@@ -579,10 +585,11 @@ When querying by location & address, it's necessary to have at least the followi
                 for j in data_type:
                     try:
                         dict_.update(out[j])
+                        dict_['placekey'] = (place['placekey'])
                     except TypeError:
                         # 'safegraph_weekly_patterns': None
                         pass
-                dict_['placekey'] = out["placekey"]
+                # dict_['placekey'] = out["placekey"]
                 data_frame.append(dict_)
 
         self.__lengthCheck__(data_frame)

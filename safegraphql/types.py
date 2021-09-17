@@ -4,7 +4,7 @@ INNER_DATASET = ["safegraph_core.*", "safegraph_geometry.*", "safegraph_monthly_
 __PATTERNS__ = {
     "safegraph_core": { 
         "__header__": "safegraph_core {",
-        "placekey" : "placekey",
+        # "placekey" : "placekey",
         "parent_placekey" : "parent_placekey",
         "location_name" : "location_name",
         "safegraph_brand_ids" : "safegraph_brand_ids",
@@ -34,7 +34,7 @@ __PATTERNS__ = {
     },
     "safegraph_geometry": {
         "__header__": "safegraph_geometry {",
-        "placekey": "placekey",
+        # "placekey": "placekey",
         "parent_placekey": "parent_placekey",
         "location_name": "location_name",
         "brands" : """
@@ -58,7 +58,7 @@ __PATTERNS__ = {
     },
     "safegraph_monthly_patterns": {
         "__header__": """safegraph_monthly_patterns {""",
-        "placekey": "placekey",
+        # "placekey": "placekey",
         "parent_placekey": "parent_placekey",
         "location_name": "location_name",
         "street_address": "street_address",
@@ -129,7 +129,7 @@ __PATTERNS__ = {
     },
     "safegraph_weekly_patterns": {
         "__header__": "safegraph_weekly_patterns _DATE_BLOCK_ {",
-        "placekey": "placekey",
+        # "placekey": "placekey",
         "parent_placekey": "parent_placekey",
         "location_name": "location_name",
         "street_address": "street_address",
