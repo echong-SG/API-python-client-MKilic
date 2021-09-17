@@ -44,6 +44,8 @@ class HTTP_Client:
 
     @date.setter
     def date(self, value):
+        if value == "__default__":
+            return
         self._round_date(value)
 
     def _round_date(self, value):
@@ -194,8 +196,11 @@ class HTTP_Client:
         query = ""
         product = product.rstrip(".*")
         pattern_pick = __PATTERNS__[product]
-        available_columns = (lambda x: [j for j in pattern_pick if j not in ["__header__", "__footer__"]] if x=="*" else [j for j in pattern_pick if j in columns] )(columns)
-        query += pattern_pick["__header__"] + " "
+        available_columns = (lambda x: [j for j in pattern_pick if j not in ["__header__", "__header_dateless__",  "__footer__"]] if x=="*" else [j for j in pattern_pick if j in columns] )(columns)
+        if product == 'safegraph_weekly_patterns' and self.date == [datetime.now().strftime("%Y-%m-%d")]:
+            query += pattern_pick["__header_dateless__"] + " "
+        else:
+            query += pattern_pick["__header__"] + " "
         for j in available_columns:
             query += pattern_pick[j] + " "
         query += pattern_pick["__footer__"] + " "
@@ -237,6 +242,12 @@ class HTTP_Client:
         n = 500
         for i in range(0, len(lst), n):
             yield lst[i:i + n]
+
+    def _date_setter(self, date):
+        if date != "__default__":
+            self.date = date
+        elif date == "__default__":
+            self.date = [datetime.now().strftime("%Y-%m-%d")]
 
     def save(self, path="__default__", return_type="__default__"):
         """
@@ -300,7 +311,7 @@ class HTTP_Client:
         else:
             return df.to_dict("records")
 
-    def lookup(self, product:str, placekeys:list, columns, date, return_type="pandas"):
+    def lookup(self, product:str, placekeys:list, columns, date = '__default__', return_type="pandas"):
         """
             :param list placekeys:          Unique Placekey ID/IDs inside an array
                 [ a single placekey string or a list of placekeys are both acceptable ]
@@ -311,7 +322,7 @@ class HTTP_Client:
             :return:                        The data of given placekeys in return_type
             :rtype:                         pandas.DataFrame or dict
         """
-        self.date = date
+        self._date_setter(date)
         self.return_type = return_type
         product = f"safegraph_{product}.*"
         params = {"placekeys": placekeys}
@@ -330,7 +341,11 @@ class HTTP_Client:
                 dataset, data_type = self.__dataset_WM(product, columns)
                 if dataset == "":
                     continue
-            dataset = dataset.replace("_DATE_", f'"{i}"')
+            if date == '__default__':
+                dataset = dataset.replace("_DATE_BLOCK_", "")
+            else:
+                dataset = dataset.replace("_DATE_BLOCK_", "(date: _DATE_ )")
+                dataset = dataset.replace("_DATE_", f'"{i}"')
             # print(dataset+"\n")
             query = gql(
                 f"""query($placekeys: [Placekey!]) {{
@@ -363,7 +378,7 @@ class HTTP_Client:
         else:
             raise safeGraphError(f'return_type "{return_type}" does not exist')
 
-    def lookup_by_name(self, product:str, columns, date,
+    def lookup_by_name(self, product:str, columns,
             location_name:str=None, 
             street_address:str=None, 
             city:str=None, 
@@ -371,6 +386,7 @@ class HTTP_Client:
             iso_country_code:str=None, 
             postal_code:str=None,
             latitude:float=None, longitude:float=None, 
+            date = '__default__',
             return_type="pandas"):
         """
             :param str location_name:       location_name of the desidred lookup
@@ -401,7 +417,7 @@ When querying by location & address, it's necessary to have at least the followi
     location_name + street_address + postal_code + iso_country_code
     location_name + latitude + longitude + iso_country_code
             ''')
-        self.date = date
+        self._date_setter(date)
         self.return_type = return_type
         product = f"safegraph_{product}.*"
         params = f"""
@@ -465,13 +481,14 @@ When querying by location & address, it's necessary to have at least the followi
         else:
             raise safeGraphError(f'return_type "{return_type}" does not exist')
 
-    def search(self, product, columns, date,
+    def search(self, product, columns,
         # params
         brand:str=None, brand_id:str=None, naics_code:int=None, phone_number:str=None,
         # address with following sub-fields
         location_name:str=None, street_address:str=None, city:str=None, region:str=None, postal_code:str=None, iso_country_code:str=None,
         max_results:int=20,
         after_result_number:int=0,
+        date:str='__default__',
         return_type:str="pandas"):
         """
             :param columns:                 list or str 
@@ -495,7 +512,7 @@ When querying by location & address, it's necessary to have at least the followi
         #################################################        |```|  /\   |````|
         self.max_results = max_results    ##################     |\``  / _\  |    |
         self.return_type = return_type    ###################    | \  /    \ |____|__
-        self.date = date                  #################
+        self._date_setter(date) ###########
         #################################################
                                           ############
         product = f"safegraph_{product}.*"

@@ -128,7 +128,7 @@ __PATTERNS__ = {
         "__footer__": "}"
     },
     "safegraph_weekly_patterns": {
-        "__header__": "safegraph_weekly_patterns (date: _DATE_ ) {",#2021-08-05"){""",
+        "__header__": "safegraph_weekly_patterns _DATE_BLOCK_ {",
         "placekey": "placekey",
         "parent_placekey": "parent_placekey",
         "location_name": "location_name",
