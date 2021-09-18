@@ -137,6 +137,10 @@ class HTTP_Client:
             # if all data from safegraph_core
             pattern_pick = __PATTERNS__["safegraph_core"]
             available_columns = (lambda x: [j for j in pattern_pick if j not in ["__header__", "__footer__"]] if x=="*" else [j for j in pattern_pick if j in columns] )(columns)#[j for j in pattern_pick if j in columns]
+            columns.remove("placekey")
+            if len(available_columns) < len(columns):
+                errors = [i for i in columns if i not in pattern_pick]
+                raise safeGraphError(f"""*** [{",".join(errors)}] not available for {product}, use another query""")
             if len(available_columns) > 0:
                 query += pattern_pick["__header__"] + " "
                 for j in available_columns:
@@ -150,6 +154,10 @@ class HTTP_Client:
             # if all data from safegraph_geometry
             pattern_pick = __PATTERNS__["safegraph_geometry"]
             available_columns = (lambda x: [j for j in pattern_pick if j not in ["__header__", "__footer__"]] if x=="*" else [j for j in pattern_pick if j in columns] )(columns)#[j for j in pattern_pick if j in columns]
+            columns.remove("placekey")
+            if len(available_columns) < len(columns):
+                errors = [i for i in columns if i not in pattern_pick]
+                raise safeGraphError(f"""*** [{",".join(errors)}] not available for {product}, use another query""")
             if len(available_columns) > 0:
                 query += pattern_pick["__header__"] + " "
                 for j in available_columns:
@@ -163,6 +171,10 @@ class HTTP_Client:
             # if all data from safegraph_monthly_patterns
             pattern_pick = __PATTERNS__["safegraph_monthly_patterns"]
             available_columns = (lambda x: [j for j in pattern_pick if j not in ["__header__", "__footer__"]] if x=="*" else [j for j in pattern_pick if j in columns] )(columns)#[j for j in pattern_pick if j in columns]
+            columns.remove("placekey")
+            if len(available_columns) < len(columns):
+                errors = [i for i in columns if i not in pattern_pick]
+                raise safeGraphError(f"""*** [{",".join(errors)}] not available for {product}, use another query""")
             if len(available_columns) > 0:
                 query += pattern_pick["__header__"] + " "
                 for j in available_columns:
