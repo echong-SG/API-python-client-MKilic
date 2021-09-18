@@ -76,9 +76,7 @@ class HTTP_Client:
             for i in range(1, week_loop+1):
                 self._date.append((start_of_week1 + timedelta(days=7*i)).strftime("%Y-%m-%d"))
         else:
-            # XXX
-            # better explain
-            raise safeGraphError(f'''*** Unrecognized DateTime! {value}\n must be either list/str/dict''')
+            raise safeGraphError(f'''*** Unrecognized DateTime! {value}\n must be either one list/str/dict''')
 
     def __change_value_types_pandas(self):
         for key, val in __VALUE_TYPES__.items():
@@ -137,10 +135,11 @@ class HTTP_Client:
             # if all data from safegraph_core
             pattern_pick = __PATTERNS__["safegraph_core"]
             available_columns = (lambda x: [j for j in pattern_pick if j not in ["__header__", "__footer__"]] if x=="*" else [j for j in pattern_pick if j in columns] )(columns)#[j for j in pattern_pick if j in columns]
-            columns.remove("placekey")
-            if len(available_columns) < len(columns):
-                errors = [i for i in columns if i not in pattern_pick]
-                raise safeGraphError(f"""*** [{",".join(errors)}] not available for {product}, use another query""")
+            if type(columns) != str:
+                columns.remove("placekey")
+                if len(available_columns) < len(columns):
+                    errors = [i for i in columns if i not in pattern_pick]
+                    raise safeGraphError(f"""*** [{",".join(errors)}] not available for {product}, use another query""")
             if len(available_columns) > 0:
                 query += pattern_pick["__header__"] + " "
                 for j in available_columns:
@@ -154,10 +153,11 @@ class HTTP_Client:
             # if all data from safegraph_geometry
             pattern_pick = __PATTERNS__["safegraph_geometry"]
             available_columns = (lambda x: [j for j in pattern_pick if j not in ["__header__", "__footer__"]] if x=="*" else [j for j in pattern_pick if j in columns] )(columns)#[j for j in pattern_pick if j in columns]
-            columns.remove("placekey")
-            if len(available_columns) < len(columns):
-                errors = [i for i in columns if i not in pattern_pick]
-                raise safeGraphError(f"""*** [{",".join(errors)}] not available for {product}, use another query""")
+            if type(columns) != str:
+                columns.remove("placekey")
+                if len(available_columns) < len(columns):
+                    errors = [i for i in columns if i not in pattern_pick]
+                    raise safeGraphError(f"""*** [{",".join(errors)}] not available for {product}, use another query""")
             if len(available_columns) > 0:
                 query += pattern_pick["__header__"] + " "
                 for j in available_columns:
@@ -171,10 +171,11 @@ class HTTP_Client:
             # if all data from safegraph_monthly_patterns
             pattern_pick = __PATTERNS__["safegraph_monthly_patterns"]
             available_columns = (lambda x: [j for j in pattern_pick if j not in ["__header__", "__footer__"]] if x=="*" else [j for j in pattern_pick if j in columns] )(columns)#[j for j in pattern_pick if j in columns]
-            columns.remove("placekey")
-            if len(available_columns) < len(columns):
-                errors = [i for i in columns if i not in pattern_pick]
-                raise safeGraphError(f"""*** [{",".join(errors)}] not available for {product}, use another query""")
+            if type(columns) != str:
+                columns.remove("placekey")
+                if len(available_columns) < len(columns):
+                    errors = [i for i in columns if i not in pattern_pick]
+                    raise safeGraphError(f"""*** [{",".join(errors)}] not available for {product}, use another query""")
             if len(available_columns) > 0:
                 query += pattern_pick["__header__"] + " "
                 for j in available_columns:
@@ -188,6 +189,11 @@ class HTTP_Client:
             # if all data from safegraph_weekly_patterns
             pattern_pick = __PATTERNS__["safegraph_weekly_patterns"]
             available_columns = (lambda x: [j for j in pattern_pick if j not in ["__header__", "__footer__"]] if x=="*" else [j for j in pattern_pick if j in columns] )(columns)#[j for j in pattern_pick if j in columns]
+            if type(columns) != str:
+                columns.remove("placekey")
+                if len(available_columns) < len(columns):
+                    errors = [i for i in columns if i not in pattern_pick]
+                    raise safeGraphError(f"""*** [{",".join(errors)}] not available for {product}, use another query""")
             if len(available_columns) > 0:
                 query += pattern_pick["__header__"] + " "
                 for j in available_columns:
@@ -285,11 +291,12 @@ class HTTP_Client:
                 with open("results.json", 'w') as json_file:
                     json.dump(self.lst, json_file, indent=4)
 
-    def sg_merge(self, datasets:list, how="outer", rt="pd"):
+    def sg_merge(self, datasets:list, how:str="outer", return_type:str="pandas"):
         """
             :param list datasets:           a list of dataframes or jsons
             :param str how:                 (optional) join style either outer or inner       
-            :return:                        The data of given datasets in first index type
+            :param str return_type:         (optional) return type either "pandas" or "list"; default "pandas"       
+            :return:                        The data of given return_type
             :rtype:                         pandas.DataFrame or list
         """
         df = datasets[0]
@@ -311,31 +318,36 @@ class HTTP_Client:
                     print("*** weekly_patterns/monthly_patterns cannot be merged for the current page: TOFIX")
             self.__adjustments(df.to_dict("records"))
         elif data_type == list:
-            # change arr's values othervise
+            # change arr's values otherwise
             r_dataset = []
             for i in range(len(datasets)):
                 if type(datasets[i]) != data_type:
                     raise safeGraphError(f"*** each datasets' type must be the same:{data_type}, cannot be {type(i)}")
                 r_dataset.append(pd.DataFrame.from_dict(datasets[i]))
-            return self.sg_merge(r_dataset, how=how, rt="ls")
+            return self.sg_merge(r_dataset, how=how, return_type="list")
 
 
             for i in datasets[1:]:
                 df = df + i
             self.__adjustments(df)  
-        if rt == "pd":      
+        if return_type == "pandas":      
             return df
         else:
             return df.to_dict("records")
 
-    def lookup(self, product:str, placekeys:list, columns, date = '__default__', return_type="pandas"):
+    def lookup(self, product:str, placekeys:list, columns, date='__default__', return_type="pandas"):
         """
+            :param str product:             spesific product to pull data from either one core/geometry/weekly_patterns/monthly_patterns
             :param list placekeys:          Unique Placekey ID/IDs inside an array
                 [ a single placekey string or a list of placekeys are both acceptable ]
             :param str return_type:         (optional) pandas or list
                 default -> pandas
             :param columns:                 list or str 
                 "*" as string for all or desired column(s) in a [list]
+            :param date:                    (optional) "YYYY-MM-DD", if not given using today's date
+                list    => ["YYYY-MM-DD", "YYYY-MM-DD", "YYYY-MM-DD"]
+                string  => "YYYY-MM-DD"
+                dict    => {'date_range_start': "YYYY-MM-DD", 'date_range_end': "YYYY-MM-DD"}
             :return:                        The data of given placekeys in return_type
             :rtype:                         pandas.DataFrame or dict
         """
@@ -362,7 +374,6 @@ class HTTP_Client:
                 dataset = dataset.replace("_DATE_BLOCK_", "")
             else:
                 dataset = dataset.replace("_DATE_BLOCK_", f'(date: "{i}" )')
-                # dataset = dataset.replace("_DATE_", f'"{i}"')
             # print(dataset+"\n")
             query = gql(
                 f"""query($placekeys: [Placekey!]) {{
@@ -385,10 +396,7 @@ class HTTP_Client:
                         pass
                 data_frame.append(dict_)
 
-        # adjustments
-        # self.__lengthCheck__(data_frame) # not working in this function
         self.__adjustments(data_frame)
-
         if self.return_type == "pandas":
             return self.df
         elif self.return_type == "list":
@@ -404,16 +412,21 @@ class HTTP_Client:
             iso_country_code:str=None, 
             postal_code:str=None,
             latitude:float=None, longitude:float=None, 
-            date = '__default__',
+            date='__default__',
             return_type="pandas"):
         """
-            :param str location_name:       location_name of the desidred lookup
-            :param str street_address:      street_address of the desidred lookup
-            :param str city:                city of the desidred lookup
-            :param str region:              region of the desidred lookup
-            :param str iso_country_code:    iso_country_code of the desidred lookup
+            :param str product:             spesific product to pull data from either one core/geometry/weekly_patterns/monthly_patterns
             :param columns:                 list or str 
-                "*" as string for all or desired column(s) in a [list]
+                "*" as string for all or desired column(s) in a list
+            :param date:                    (optional) "YYYY-MM-DD", if not given using today's date
+                list    => ["YYYY-MM-DD", "YYYY-MM-DD", "YYYY-MM-DD"]
+                string  => "YYYY-MM-DD"
+                dict    => {'date_range_start': "YYYY-MM-DD", 'date_range_end': "YYYY-MM-DD"}
+            :param str location_name:       (optional) location_name of the desidred lookup
+            :param str street_address:      (optional) street_address of the desidred lookup
+            :param str city:                (optional) city of the desidred lookup
+            :param str region:              (optional) region of the desidred lookup
+            :param str iso_country_code:    (optional) iso_country_code of the desidred lookup
             :param str return_type:         (optional) pandas or list
                 default -> pandas
             :return:                        The data of given placekey in return_type
@@ -466,7 +479,6 @@ When querying by location & address, it's necessary to have at least the followi
                 dataset = dataset.replace("_DATE_BLOCK_", "")
             else:
                 dataset = dataset.replace("_DATE_BLOCK_", f'(date: "{i}" )')
-                # dataset = dataset.replace("_DATE_", f'"{i}"')
             # print(dataset+"\n")
             query = gql(
                 f"""query {{
@@ -492,10 +504,7 @@ When querying by location & address, it's necessary to have at least the followi
                 raise safeGraphError("*** query didnt match with an item")
             data_frame.append(dict_)
 
-        # adjustments
-        # self.__lengthCheck__(data_frame) # not working in this function
         self.__adjustments(data_frame)
-
         if self.return_type == "pandas":
             return self.df
         elif self.return_type == "list":
@@ -503,22 +512,27 @@ When querying by location & address, it's necessary to have at least the followi
         else:
             raise safeGraphError(f'return_type "{return_type}" does not exist')
 
-    def search(self, product, columns,
+    def search(self, product, columns, date='__default__',
         # params
         brand:str=None, brand_id:str=None, naics_code:int=None, phone_number:str=None,
         # address with following sub-fields
         location_name:str=None, street_address:str=None, city:str=None, region:str=None, postal_code:str=None, iso_country_code:str=None,
         max_results:int=20,
         after_result_number:int=0,
-        date:str='__default__',
         return_type:str="pandas"):
         """
+            :param str product:             spesific product to pull data from either one core/geometry/weekly_patterns/monthly_patterns
             :param columns:                 list or str 
-                "*" as string for all or desired column(s) in a [list]
+                "*" as string for all or desired column(s) in a list
+            :param date:                    (optional) "YYYY-MM-DD", if not given using today's date
+                list    => ["YYYY-MM-DD", "YYYY-MM-DD", "YYYY-MM-DD"]
+                string  => "YYYY-MM-DD"
+                dict    => {'date_range_start': "YYYY-MM-DD", 'date_range_end': "YYYY-MM-DD"}
             :param str brand:               brand for searching query
             :param str brand_id:            brand_id for searching query
             :param int naics_code:          naics_code for searching query
             :param str phone_number:        phone_number for searching query
+            :param str location_name:       location_name for searching query
             :param str street_address:      street_address of the desidred place
             :param str city:                city of the desidred place
             :param str region:              region of the desidred place
@@ -579,7 +593,6 @@ When querying by location & address, it's necessary to have at least the followi
                     dataset = dataset.replace("_DATE_BLOCK_", "")
                 else:
                     dataset = dataset.replace("_DATE_BLOCK_", f'(date: "{i}" )')
-                # dataset = dataset.replace("_DATE_", f'"{i}"')
                 # print(dataset+"\n")
                 query = gql(
                     f"""query {{

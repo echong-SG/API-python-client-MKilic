@@ -53,6 +53,18 @@ cols = [
 
 date = {"date_range_start": "2021-07-10", "date_range_end": "2021-08-01"} 
 # data = sgql_client.lookup(product = 'weekly_patterns', placekeys = sparse_pk, date = dates,columns = cols)
+cols = [
+    'placekey',
+    'location_name',
+    'street_address',
+    'raw_visit_counts'
+]
+
+sgql_client.lookup(
+    product = 'core',
+    placekeys = sparse_pk, 
+    columns = cols
+)
 import pdb;pdb.set_trace()
 _lookup = sgql_client.lookup_by_name( 
         product="core",
@@ -74,7 +86,7 @@ geo = sgql_client.search( product="geometry", columns="*", brand = "starbucks", 
 month = sgql_client.lookup(product="monthly_patterns", placekeys=["zzy-22b@4gv-vsp-mkz"], columns="*", date="2021-01-10")
 arr_ = [geo, core, month]
 inner_df = sgql_client.sg_merge(arr_, how="inner")
-week_look = sgql_client.lookup(product="weekly_patterns", placekeys=placekeys, columns="*")
+week_look = sgql_client.lookup(product="weekly_patterns", placekeys=placekeys, columns="*", date="2021-01-10")
 import pdb;pdb.set_trace()
 # misc. columns
 
