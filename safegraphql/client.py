@@ -136,7 +136,10 @@ class HTTP_Client:
             pattern_pick = __PATTERNS__["safegraph_core"]
             available_columns = (lambda x: [j for j in pattern_pick if j not in ["__header__", "__footer__"]] if x=="*" else [j for j in pattern_pick if j in columns] )(columns)#[j for j in pattern_pick if j in columns]
             if type(columns) != str:
-                columns.remove("placekey")
+                try:
+                    columns.remove("placekey")
+                except ValueError:
+                    pass
                 if len(available_columns) < len(columns):
                     errors = [i for i in columns if i not in pattern_pick]
                     raise safeGraphError(f"""*** [{",".join(errors)}] not available for {product}, use another query""")
@@ -154,7 +157,10 @@ class HTTP_Client:
             pattern_pick = __PATTERNS__["safegraph_geometry"]
             available_columns = (lambda x: [j for j in pattern_pick if j not in ["__header__", "__footer__"]] if x=="*" else [j for j in pattern_pick if j in columns] )(columns)#[j for j in pattern_pick if j in columns]
             if type(columns) != str:
-                columns.remove("placekey")
+                try:
+                    columns.remove("placekey")
+                except ValueError:
+                    pass
                 if len(available_columns) < len(columns):
                     errors = [i for i in columns if i not in pattern_pick]
                     raise safeGraphError(f"""*** [{",".join(errors)}] not available for {product}, use another query""")
@@ -172,7 +178,10 @@ class HTTP_Client:
             pattern_pick = __PATTERNS__["safegraph_monthly_patterns"]
             available_columns = (lambda x: [j for j in pattern_pick if j not in ["__header__", "__footer__"]] if x=="*" else [j for j in pattern_pick if j in columns] )(columns)#[j for j in pattern_pick if j in columns]
             if type(columns) != str:
-                columns.remove("placekey")
+                try:
+                    columns.remove("placekey")
+                except ValueError:
+                    pass
                 if len(available_columns) < len(columns):
                     errors = [i for i in columns if i not in pattern_pick]
                     raise safeGraphError(f"""*** [{",".join(errors)}] not available for {product}, use another query""")
@@ -302,7 +311,6 @@ class HTTP_Client:
         df = datasets[0]
         data_type = type(df)
         if data_type == pd.DataFrame:
-            import pdb;pdb.set_trace()
             df_cols = list(df.columns)
             df_cols.remove('placekey')
             for i in datasets[1:]:
