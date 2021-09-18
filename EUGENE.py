@@ -51,8 +51,10 @@ cols = [
     'visits_by_day'
 ]
 
-data = sgql_client.lookup(product = 'weekly_patterns',placekeys = sparse_pk, date = dates,columns = cols)
-_lookup = sgql_client.lookup_by_name(date="2021-06-11", 
+date = {"date_range_start": "2021-07-10", "date_range_end": "2021-08-01"} 
+# data = sgql_client.lookup(product = 'weekly_patterns', placekeys = sparse_pk, date = dates,columns = cols)
+import pdb;pdb.set_trace()
+_lookup = sgql_client.lookup_by_name( 
         product="core",
         location_name= "Taco Bell", 
         street_address= "710 3rd St", 
@@ -61,9 +63,19 @@ _lookup = sgql_client.lookup_by_name(date="2021-06-11",
         iso_country_code= "US",
         return_type="pandas",
         columns="*")
-ss = sgql_client.search( product="core", columns="*", brand = "starbucks", brand_id = None, naics_code = None, phone_number = None, street_address = None, city = None, region = None, postal_code = None, iso_country_code = None, max_results=70, after_result_number=10, return_type="pandas")
 import pdb;pdb.set_trace()
-
+core = sgql_client.search( product="core", columns="*", brand = "starbucks", brand_id = None, naics_code = None, phone_number = None, street_address = None, city = None, region = None, postal_code = None, iso_country_code = None, max_results=70, after_result_number=0, return_type="pandas")
+import pdb;pdb.set_trace()
+geo = sgql_client.search( product="geometry", columns="*", brand = "starbucks", brand_id = None, naics_code = None, phone_number = None, street_address = None, city = None, region = None, postal_code = None, iso_country_code = None, max_results=70, after_result_number=0, return_type="pandas")
+# error
+# ss = sgql_client.search( product="core", columns="*", brand = "starbucks", brand_id = None, naics_code = None, phone_number = None, street_address = None, city = None, region = None, postal_code = None, iso_country_code = None, max_results=70, after_result_number=10, return_type="pandas")
+# lll__ = sgql_client.lookup(placekeys=placekeys, product="weekly_patterns", columns="*", return_type="list", date=date)
+# lll = sgql_client.lookup(placekeys=placekeys, product="weekly_patterns", columns="*", return_type="pandas", date=date)
+month = sgql_client.lookup(product="monthly_patterns", placekeys=["zzy-22b@4gv-vsp-mkz"], columns="*", date="2021-01-10")
+arr_ = [geo, core, month]
+inner_df = sgql_client.sg_merge(arr_, how="inner")
+week_look = sgql_client.lookup(product="weekly_patterns", placekeys=placekeys, columns="*")
+import pdb;pdb.set_trace()
 # misc. columns
 
 def test_EUGENE_case():

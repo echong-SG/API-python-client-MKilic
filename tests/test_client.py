@@ -168,12 +168,12 @@ def test_non_weekly_date_req():
     # weekly monthly
     # safegraph_core                
     date = {"date_range_start": "2021-07-10", "date_range_end": "2021-08-01"}                                                                                                                                                                                                                                                   
-    assert type(sgql_client.lookup(placekeys=placekeys, product="weekly_pattern", columns="*", return_type="list", date=date)) == list                                                                                                                                                      
-    core = sgql_client.lookup(placekeys=placekeys, product="weekly_pattern", columns="*", return_type="pandas", date=date)                                                                                                                                     
+    assert type(sgql_client.lookup(placekeys=placekeys, product="weekly_patterns", columns="*", return_type="list", date=date)) == list                                                                                                                                                      
+    core = sgql_client.lookup(placekeys=placekeys, product="weekly_patterns", columns="*", return_type="pandas", date=date)                                                                                                                                     
     assert type(core) == df_type                              
     # monthly_pattern                                                                                                                                                                                                                         
-    assert type(sgql_client.lookup(placekeys=placekeys, product="monthly_pattern", columns="*", return_type="list", date=date)) == list                                                                                                                                                      
-    core = sgql_client.lookup(placekeys=placekeys, product="monthly_pattern", columns="*", return_type="pandas", date=date)                                                                                                                                     
+    assert type(sgql_client.lookup(placekeys=placekeys, product="monthly_patterns", columns="*", return_type="list", date=date)) == list                                                                                                                                                      
+    core = sgql_client.lookup(placekeys=placekeys, product="monthly_patterns", columns="*", return_type="pandas", date=date)                                                                                                                                     
     assert type(core) == df_type     
 
     # NON weekly monthly

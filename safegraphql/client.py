@@ -16,7 +16,7 @@ class safeGraphError(Exception):
     pass
 
 class HTTP_Client:
-    def __init__(self, apikey, max_tries=10):
+    def __init__(self, apikey, max_tries=3):
         self.df = pd.DataFrame()
         self.lst = [] 
         self.url = 'https://api.safegraph.com/v1/graphql'
@@ -185,9 +185,9 @@ class HTTP_Client:
             else:
                 raise safeGraphError("*** picked column(s) not available")
             data_type = ["safegraph_weekly_patterns"]
-        elif type(columns) != list:
-            raise ValueError("""*** columns argument must to be a list or one of the following string: 
-                * , safegraph_core.* , safegraph_geometry.* , safegraph_monthly_patterns.* , safegraph_weekly_patterns.*
+        else:
+            raise ValueError("""*** product argument must be one of the following string: 
+                core, geometry, monthly_patterns, weekly_patterns
             """)
         return query, data_type
 
@@ -283,6 +283,7 @@ class HTTP_Client:
         df = datasets[0]
         data_type = type(df)
         if data_type == pd.DataFrame:
+            import pdb;pdb.set_trace()
             df_cols = list(df.columns)
             df_cols.remove('placekey')
             for i in datasets[1:]:
@@ -295,7 +296,7 @@ class HTTP_Client:
                 except pd.errors.MergeError as e:
                     print(e)
                 except TypeError:
-                    print("*** weekly patterns cannot be merged for the current page: TOFIX")
+                    print("*** weekly_patterns/monthly_patterns cannot be merged for the current page: TOFIX")
             self.__adjustments(df.to_dict("records"))
         elif data_type == list:
             # change arr's values othervise
@@ -517,12 +518,13 @@ When querying by location & address, it's necessary to have at least the followi
                 default -> pandas
             :return:                        The data of given placekey in return_type
             :rtype:                         pandas.DataFrame or dict
-        """                               ############ 
-        #################################################        |```|  /\   |````|
-        self.max_results = max_results    ##################     |\``  / _\  |    |
-        self.return_type = return_type    ###################    | \  /    \ |____|__
-        self._date_setter(date) ###########
-        #################################################
+        """
+                                          ############
+        #################################################        |```|  /\   |`````|
+        self.max_results = max_results    ##################     |   | /  \  |     |
+        self.return_type = return_type    ###################    |`\` /____\ |     |
+        self._date_setter(date)           #################      |  \/      \|     |
+        #################################################        |  /\       |\____|__
                                           ############
         product = f"safegraph_{product}.*"
         params = f"""
