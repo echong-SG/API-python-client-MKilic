@@ -51,7 +51,7 @@ cols = [
     'visits_by_day'
 ]
 
-# data = sgql_client.lookup(product = 'weekly_patterns',placekeys = sparse_pk, date = dates,columns = cols)
+data = sgql_client.lookup(product = 'weekly_patterns',placekeys = sparse_pk, date = dates,columns = cols)
 _lookup = sgql_client.lookup_by_name(date="2021-06-11", 
         product="core",
         location_name= "Taco Bell", 
@@ -61,6 +61,7 @@ _lookup = sgql_client.lookup_by_name(date="2021-06-11",
         iso_country_code= "US",
         return_type="pandas",
         columns="*")
+ss = sgql_client.search( product="core", columns="*", brand = "starbucks", brand_id = None, naics_code = None, phone_number = None, street_address = None, city = None, region = None, postal_code = None, iso_country_code = None, max_results=70, after_result_number=10, return_type="pandas")
 import pdb;pdb.set_trace()
 
 # misc. columns

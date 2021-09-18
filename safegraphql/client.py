@@ -222,8 +222,8 @@ class HTTP_Client:
             for v in self.lst[l].keys():
                 if self.lst[l][v] == None:
                     count+=1
-                if count >= len(self.lst[l])-1:
-                    self.lst.pop()
+            if count >= len(self.lst[l])-1:
+                self.lst.pop()
 
     def __lengthCheck__(self, data_frame):
         if len(data_frame) < 1:

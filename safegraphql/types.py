@@ -1,4 +1,4 @@
-WM__PATTERNS__ = ["safegraph_weekly_patterns.*"] # "safegraph_monthly_patterns.*", 
+WM__PATTERNS__ = ["safegraph_weekly_patterns.*"] # , "safegraph_monthly_patterns.*"]
 DATASET = ["safegraph_core", "safegraph_geometry", "safegraph_monthly_patterns", "safegraph_weekly_patterns",]
 INNER_DATASET = ["safegraph_core.*", "safegraph_geometry.*", "safegraph_monthly_patterns.*", "safegraph_weekly_patterns.*",] # for dataset column functionality
 __PATTERNS__ = {
@@ -57,7 +57,7 @@ __PATTERNS__ = {
         "__footer__": "}"
     },
     "safegraph_monthly_patterns": {
-        "__header__": "safegraph_monthly_patterns _DATE_BLOCK_ {",
+        "__header__": "safegraph_monthly_patterns {",#_DATE_BLOCK_ {",
         # "placekey": "placekey",
         "parent_placekey": "parent_placekey",
         "location_name": "location_name",
