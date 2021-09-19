@@ -140,3 +140,4 @@ cython_debug/
 #apiKey folder
 apiKey.txt
 *.csv
+EUGENE.py

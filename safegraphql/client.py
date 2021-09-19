@@ -7,10 +7,6 @@ from .types import __VALUE_TYPES__, DATASET, INNER_DATASET, __PATTERNS__, WM__PA
 from requests.exceptions import *  
 from datetime import datetime, timedelta
 from time import sleep
-### DEBUGGER
-# import pprint
-# printy =  pprint.PrettyPrinter(indent=4).pprint
-##
 
 class safeGraphError(Exception):
     pass
