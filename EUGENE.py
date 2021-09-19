@@ -60,7 +60,7 @@ cols = [
     'raw_visit_counts'
 ]
 
-sgql_client.lookup(
+lok = sgql_client.lookup(
     product = 'core',
     placekeys = sparse_pk, 
     columns = cols
