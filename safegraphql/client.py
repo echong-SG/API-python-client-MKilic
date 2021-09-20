@@ -281,8 +281,8 @@ class HTTP_Client:
             :param str return_type:          (optional) pandas or list 
                 return type of the saved format by default last return format
         """
-        if return_type == "__default__":
-            return_type = self.return_type
+        if return_type != "__default__":
+            self.return_type = return_type
         if self.return_type == "pandas":
             if path != "__default__":
                 self.df.to_csv(path_or_buf=path, index=False)
@@ -290,11 +290,13 @@ class HTTP_Client:
                self.df.to_csv(path_or_buf="results.csv", index=False) 
         elif self.return_type == "list":
             if path != "__default__":
-                with open(path, 'w') as json_file:
-                    json.dump(self.lst, json_file, indent=4)
+                json_file = open(path, 'w')
+                json.dump(self.lst, json_file, indent=4)
+                json_file.close()
             else:
-                with open("results.json", 'w') as json_file:
-                    json.dump(self.lst, json_file, indent=4)
+                json_file = open("results.json", 'w')
+                json.dump(self.lst, json_file, indent=4)
+                json_file.close()
 
     def sg_merge(self, datasets:list, how:str="outer", return_type:str="pandas"):
         """
