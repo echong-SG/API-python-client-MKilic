@@ -297,6 +297,8 @@ class HTTP_Client:
                 json_file = open("results.json", 'w')
                 json.dump(self.lst, json_file, indent=4)
                 json_file.close()
+        else:
+            raise safeGraphError("*** unknown return_type should be a string, either pandas or list")
 
     def sg_merge(self, datasets:list, how:str="outer", return_type:str="pandas"):
         """
