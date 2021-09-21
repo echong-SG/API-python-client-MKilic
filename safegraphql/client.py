@@ -1,4 +1,5 @@
 import pandas as pd
+import numpy as np
 import json
 from gql import gql
 from gql import Client as gql_Client
@@ -195,7 +196,10 @@ class HTTP_Client:
             pattern_pick = __PATTERNS__["safegraph_weekly_patterns"]
             available_columns = (lambda x: [j for j in pattern_pick if j not in ["__header__", "__footer__"]] if x=="*" else [j for j in pattern_pick if j in columns] )(columns)#[j for j in pattern_pick if j in columns]
             if type(columns) != str:
-                columns.remove("placekey")
+                try:
+                    columns.remove("placekey")
+                except ValueError:
+                    pass
                 if len(available_columns) < len(columns):
                     errors = [i for i in columns if i not in pattern_pick]
                     raise safeGraphError(f"""*** [{",".join(errors)}] not available for {product}, use another query""")
@@ -245,8 +249,15 @@ class HTTP_Client:
             for v in self.lst[l].keys():
                 if self.lst[l][v] == None:
                     count+=1
+                    continue
+                try:
+                    if np.isnan(self.lst[l][v]):
+                        count+=1
+                        continue
+                except TypeError:
+                    pass
             if count >= len(self.lst[l])-1:
-                self.lst.pop()
+                self.lst.pop(l)
 
     def __lengthCheck__(self, data_frame):
         if len(data_frame) < 1:
