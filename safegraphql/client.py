@@ -128,17 +128,18 @@ class HTTP_Client:
         w_run_ = 1 # for weekly patterns
         query = ""
         data_type = []
+        cols = columns.copy()
         if product == "safegraph_core.*":
             # if all data from safegraph_core
             pattern_pick = __PATTERNS__["safegraph_core"]
-            available_columns = (lambda x: [j for j in pattern_pick if j not in ["__header__", "__footer__"]] if x=="*" else [j for j in pattern_pick if j in columns] )(columns)#[j for j in pattern_pick if j in columns]
-            if type(columns) != str:
+            available_columns = (lambda x: [j for j in pattern_pick if j not in ["__header__", "__footer__"]] if x=="*" else [j for j in pattern_pick if j in cols] )(cols)#[j for j in pattern_pick if j in columns]
+            if type(cols) != str:
                 try:
-                    columns.remove("placekey")
+                    cols.remove("placekey")
                 except ValueError:
                     pass
-                if len(available_columns) < len(columns):
-                    errors = [i for i in columns if i not in pattern_pick]
+                if len(available_columns) < len(cols):
+                    errors = [i for i in cols if i not in pattern_pick]
                     raise safeGraphError(f"""*** [{",".join(errors)}] not available for {product}, use another query""")
             if len(available_columns) > 0:
                 query += pattern_pick["__header__"] + " "
@@ -152,14 +153,14 @@ class HTTP_Client:
         elif product == "safegraph_geometry.*":
             # if all data from safegraph_geometry
             pattern_pick = __PATTERNS__["safegraph_geometry"]
-            available_columns = (lambda x: [j for j in pattern_pick if j not in ["__header__", "__footer__"]] if x=="*" else [j for j in pattern_pick if j in columns] )(columns)#[j for j in pattern_pick if j in columns]
-            if type(columns) != str:
+            available_columns = (lambda x: [j for j in pattern_pick if j not in ["__header__", "__footer__"]] if x=="*" else [j for j in pattern_pick if j in cols] )(cols)#[j for j in pattern_pick if j in columns]
+            if type(cols) != str:
                 try:
-                    columns.remove("placekey")
+                    cols.remove("placekey")
                 except ValueError:
                     pass
-                if len(available_columns) < len(columns):
-                    errors = [i for i in columns if i not in pattern_pick]
+                if len(available_columns) < len(cols):
+                    errors = [i for i in cols if i not in pattern_pick]
                     raise safeGraphError(f"""*** [{",".join(errors)}] not available for {product}, use another query""")
             if len(available_columns) > 0:
                 query += pattern_pick["__header__"] + " "
@@ -173,14 +174,14 @@ class HTTP_Client:
         elif product == "safegraph_monthly_patterns.*":
             # if all data from safegraph_monthly_patterns
             pattern_pick = __PATTERNS__["safegraph_monthly_patterns"]
-            available_columns = (lambda x: [j for j in pattern_pick if j not in ["__header__", "__footer__"]] if x=="*" else [j for j in pattern_pick if j in columns] )(columns)#[j for j in pattern_pick if j in columns]
-            if type(columns) != str:
+            available_columns = (lambda x: [j for j in pattern_pick if j not in ["__header__", "__footer__"]] if x=="*" else [j for j in pattern_pick if j in cols] )(cols)#[j for j in pattern_pick if j in columns]
+            if type(cols) != str:
                 try:
-                    columns.remove("placekey")
+                    cols.remove("placekey")
                 except ValueError:
                     pass
-                if len(available_columns) < len(columns):
-                    errors = [i for i in columns if i not in pattern_pick]
+                if len(available_columns) < len(cols):
+                    errors = [i for i in cols if i not in pattern_pick]
                     raise safeGraphError(f"""*** [{",".join(errors)}] not available for {product}, use another query""")
             if len(available_columns) > 0:
                 query += pattern_pick["__header__"] + " "
@@ -194,14 +195,14 @@ class HTTP_Client:
         elif product == "safegraph_weekly_patterns.*":
             # if all data from safegraph_weekly_patterns
             pattern_pick = __PATTERNS__["safegraph_weekly_patterns"]
-            available_columns = (lambda x: [j for j in pattern_pick if j not in ["__header__", "__footer__"]] if x=="*" else [j for j in pattern_pick if j in columns] )(columns)#[j for j in pattern_pick if j in columns]
-            if type(columns) != str:
+            available_columns = (lambda x: [j for j in pattern_pick if j not in ["__header__", "__footer__"]] if x=="*" else [j for j in pattern_pick if j in cols] )(cols)#[j for j in pattern_pick if j in columns]
+            if type(cols) != str:
                 try:
-                    columns.remove("placekey")
+                    cols.remove("placekey")
                 except ValueError:
                     pass
-                if len(available_columns) < len(columns):
-                    errors = [i for i in columns if i not in pattern_pick]
+                if len(available_columns) < len(cols):
+                    errors = [i for i in cols if i not in pattern_pick]
                     raise safeGraphError(f"""*** [{",".join(errors)}] not available for {product}, use another query""")
             if len(available_columns) > 0:
                 query += pattern_pick["__header__"] + " "
