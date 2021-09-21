@@ -1,5 +1,4 @@
 import pandas as pd
-import numpy as np
 import json
 from gql import gql
 from gql import Client as gql_Client
@@ -251,12 +250,6 @@ class HTTP_Client:
                 if self.lst[l][v] == None:
                     count+=1
                     continue
-                try:
-                    if np.isnan(self.lst[l][v]):
-                        count+=1
-                        continue
-                except TypeError:
-                    pass
             if count >= len(self.lst[l])-1:
                 self.lst.pop(l)
 
