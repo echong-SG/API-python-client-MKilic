@@ -216,8 +216,6 @@ merged = sgql_client.sg_merge(datasets = merge_set)
 
 Use `lookup()` to query Weekly Patterns data for a Placekey from a particular date (`YYYY-MM-DD` format).
 
-!!REMOVE patterns_type parameter!!
-
 ```python
 date = '2019-06-15'
 
@@ -225,8 +223,8 @@ sgql_client.lookup(
     product = 'weekly_patterns', 
     placekeys = pk, 
     date = date, 
-    columns = ['placekey', 'location_name', 'date_range_start', 'date_range_end', 'raw_visit_counts'], 
-    patterns_version = 'weekly'
+    patterns_version = 'weekly',
+    columns = ['placekey', 'location_name', 'date_range_start', 'date_range_end', 'raw_visit_counts']
 )
 ```
 |    | placekey            | location_name            | date_range_start          | date_range_end            |   raw_visit_counts |
