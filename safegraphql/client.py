@@ -127,12 +127,17 @@ class HTTP_Client:
         w_run_ = 1 # for weekly patterns
         query = ""
         data_type = []
-        cols = columns.copy()
+        try:
+            cols = columns.copy()
+        except AttributeError:
+            cols = columns # cols is *
         if product == "safegraph_core.*":
             # if all data from safegraph_core
             pattern_pick = __PATTERNS__["safegraph_core"]
             available_columns = (lambda x: [j for j in pattern_pick if j not in ["__header__", "__footer__"]] if x=="*" else [j for j in pattern_pick if j in cols] )(cols)#[j for j in pattern_pick if j in columns]
             if type(cols) != str:
+                # XXX
+                # TEST
                 try:
                     cols.remove("placekey")
                 except ValueError:

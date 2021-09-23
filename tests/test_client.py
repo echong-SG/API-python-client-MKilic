@@ -162,7 +162,7 @@ def test_lookup():
             random.sample(arr,random.randint(1, len(arr))), 
         return_type="pandas", date=date)
     except Exception as e:
-        assert(type(e) == ValueError)
+        assert type(e) == client.safeGraphError
 
 def test_non_weekly_date_req():
     # weekly monthly
