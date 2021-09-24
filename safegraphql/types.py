@@ -37,6 +37,7 @@ __PATTERNS__ = {
         # "placekey": "placekey",
         "parent_placekey": "parent_placekey",
         "location_name": "location_name",
+        "safegraph_brand_ids": "safegraph_brand_ids",
         "brands" : """
             brands {
                 brand_id: brand_id,
@@ -78,49 +79,17 @@ __PATTERNS__ = {
         "visits_by_day": "visits_by_day",
         "poi_cbg": "poi_cbg",
         "visitor_home_cbgs": "visitor_home_cbgs",
-        "visitor_home_aggregation": """
-            visitor_home_aggregation {
-                key: key
-                value: value
-        }""",
-        "visitor_daytime_cbgs": """
-            visitor_daytime_cbgs {
-                key: key
-                value: value
-        }""",
-        "visitor_country_of_origin": """
-            visitor_country_of_origin {
-                key: key
-                value: value
-        }""",
+        "visitor_home_aggregation": "visitor_home_aggregation",
+        "visitor_daytime_cbgs": "visitor_daytime_cbgs",
+        "visitor_country_of_origin": "visitor_country_of_origin",
         "distance_from_home": "distance_from_home",
         "median_dwell": "median_dwell",
-        "bucketed_dwell_times": """
-            bucketed_dwell_times {
-                key: key
-                value: value
-        }""",
-        "related_same_day_brand": """
-            related_same_day_brand {
-                key: key
-                value: value
-        }""",
-        "related_same_month_brand": """
-            related_same_month_brand {
-                key: key
-                value: value
-        }""",
+        "bucketed_dwell_times": "bucketed_dwell_times",
+        "related_same_day_brand": "related_same_day_brand",
+        "related_same_month_brand": "related_same_month_brand",
         "popularity_by_hour": "popularity_by_hour",
-        "popularity_by_day": """
-            popularity_by_day {
-                key: key
-                value: value
-        }""",
-        "device_type": """
-            device_type {
-                key: key
-                value: value
-        }""",
+        "popularity_by_day": "popularity_by_day",
+        "device_type": "device_type",
         "__footer__": "}"
     },
     "safegraph_weekly_patterns": {
@@ -143,43 +112,15 @@ __PATTERNS__ = {
         "visits_by_each_hour": "visits_by_each_hour",
         "poi_cbg": "poi_cbg",
         "visitor_home_cbgs": "visitor_home_cbgs",
-        "visitor_home_aggregation": """
-            visitor_home_aggregation {
-                key
-                value
-        }""",
-        "visitor_daytime_cbgs": """
-            visitor_daytime_cbgs {
-                key
-                value
-        }""",
-        "visitor_country_of_origin": """
-            visitor_country_of_origin {
-                key
-                value
-        }""",
+        "visitor_home_aggregation": "visitor_home_aggregation",
+        "visitor_daytime_cbgs": "visitor_daytime_cbgs",
+        "visitor_country_of_origin": "visitor_country_of_origin",
         "distance_from_home": "distance_from_home",
         "median_dwell": "median_dwell",
-        "bucketed_dwell_times": """
-            bucketed_dwell_times {
-                key: key
-                value: value
-        }""",
-        "related_same_day_brand": """
-            related_same_day_brand {
-                key
-                value
-        }""",
-        "related_same_week_brand": """
-            related_same_week_brand {
-                key
-                value
-        }""",
-        # "device_type": """
-        #     device_type {
-        #         key: key
-        #         value: value
-        # }""",
+        "bucketed_dwell_times": "bucketed_dwell_times",
+        "related_same_day_brand": "related_same_day_brand",
+        "related_same_week_brand": "related_same_week_brand",
+        "device_type": "device_type",
         "__footer__": "}"
     },
 }
