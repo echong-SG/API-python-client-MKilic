@@ -223,7 +223,6 @@ sgql_client.lookup(
     product = 'weekly_patterns', 
     placekeys = pk, 
     date = date, 
-    patterns_version = 'weekly',
     columns = ['placekey', 'location_name', 'date_range_start', 'date_range_end', 'raw_visit_counts']
 )
 ```
@@ -241,8 +240,7 @@ sgql_client.lookup(
     product = 'weekly_patterns', 
     placekeys = pk, 
     date = dates, 
-    columns = ['placekey', 'location_name', 'date_range_start', 'date_range_end', 'raw_visit_counts'], 
-    patterns_version = 'weekly'
+    columns = ['placekey', 'location_name', 'date_range_start', 'date_range_end', 'raw_visit_counts']
 )
 ```
 
@@ -261,8 +259,7 @@ sgql_client.lookup(
     product = 'weekly_patterns', 
     placekeys = pk, 
     date = dates, 
-    columns = ['placekey', 'location_name', 'date_range_start', 'date_range_end', 'raw_visit_counts'], 
-    patterns_version = 'weekly'
+    columns = ['placekey', 'location_name', 'date_range_start', 'date_range_end', 'raw_visit_counts']
 )
 ```
 
@@ -286,8 +283,7 @@ watterns = sgql_client.lookup(
     product = 'weekly_patterns', 
     placekeys = pk, 
     date = dates, 
-    columns = ['placekey', 'location_name', 'date_range_start', 'date_range_end', 'raw_visit_counts'], 
-    patterns_version = 'weekly'
+    columns = ['placekey', 'location_name', 'date_range_start', 'date_range_end', 'raw_visit_counts']
 )
 
 core = sgql_client.lookup(product = 'core', placekeys = pk, columns = ['placekey', 'location_name', 'naics_code', 'top_category', 'sub_category'])
@@ -400,7 +396,7 @@ brand = 'Sheetz'
 region = 'PA'
 date = '2021-07-04'
 
-search_result = sgql_client.search(product = 'weekly_patterns', columns = ['placekey', 'location_name', 'raw_visit_counts'], date = date, brand = brand, region = region, patterns_version = 'weekly')
+search_result = sgql_client.search(product = 'weekly_patterns', columns = ['placekey', 'location_name', 'raw_visit_counts'], date = date, brand = brand, region = region)
 ```
 
 |    | placekey            | location_name   |   raw_visit_counts |
