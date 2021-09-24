@@ -571,6 +571,7 @@ When querying by location & address, it's necessary to have at least the followi
         #################################################        |  /\       |\____|__
                                           ############
         product = f"safegraph_{product}.*"
+        print(product)
         params = f"""
 {(lambda x,y: f' {x}: "{y}" ' if y!=None else "")("brand", brand)}
 {(lambda x,y: f' {x}: "{y}" ' if y!=None else "")("brand_id", brand_id)}

@@ -77,11 +77,7 @@ __PATTERNS__ = {
         "raw_visitor_counts": "raw_visitor_counts",
         "visits_by_day": "visits_by_day",
         "poi_cbg": "poi_cbg",
-        "visitor_home_cbgs": """
-            visitor_home_cbgs {
-                key: key
-                value: value
-            }""",
+        "visitor_home_cbgs": "visitor_home_cbgs",
         "visitor_home_aggregation": """
             visitor_home_aggregation {
                 key: key
@@ -146,11 +142,7 @@ __PATTERNS__ = {
         "visits_by_day": "visits_by_day",
         "visits_by_each_hour": "visits_by_each_hour",
         "poi_cbg": "poi_cbg",
-        "visitor_home_cbgs": """
-            visitor_home_cbgs {
-                key
-                value
-        }""",
+        "visitor_home_cbgs": "visitor_home_cbgs",
         "visitor_home_aggregation": """
             visitor_home_aggregation {
                 key
