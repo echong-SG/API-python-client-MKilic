@@ -276,11 +276,48 @@ class HTTP_Client:
         for i in range(0, len(lst), n):
             yield lst[i:i + n]
 
-    def _date_setter(self, date):
+    def __date_setter(self, date):
         if date != "__default__":
             self.date = date
         elif date == "__default__":
             self.date = [datetime.now().strftime("%Y-%m-%d")]
+
+    def __prettyfy(self, __query__) -> None:
+        __pick__ = False # picks the next value without additional operation; for first check
+        pre = 0
+        str_ = ""
+        __split__ = re.sub(r'\s+', " ", __query__).split(" ")
+        for s in __split__:
+            # v2
+            # if s == "{":
+            #     pre+=1
+            #     str_ += s + "\n" + pre*"\t"
+            # elif s == "}":
+            #     pre-=1
+            #     str_ += s + "\n" + pre*"\t"
+            # else:
+            #     str_+=s
+
+            # v1
+            # if __pick__:
+            #     if s == "{":
+            #         pre+=1
+            #     elif s == "}":
+            #         pre-=1
+            #     str_+= " " + s + "\n" + pre*"\t"
+            #     __pick__ = False
+            # elif s == "{":
+            #     pre+=1
+            #     str_+=" " + s# + "\n" + pre*"\t"
+            # elif s == "}":
+            #     pre-=1
+            #     str_+=" " + s# + "\n" + pre*"\t"
+            # elif s.endswith(":"):
+            #     str_+=" " + s
+            #     __pick__ = True
+            # else:
+            #     str_+= "\n" + pre*"\t" + s
+        print(re.sub(r'\n+', '\n', __query__))
 
     def save(self, path="__default__", return_type="__default__"):
         """
@@ -369,7 +406,7 @@ class HTTP_Client:
             :return:                        The data of given placekeys in return_type
             :rtype:                         pandas.DataFrame or dict
         """
-        self._date_setter(date)
+        self.__date_setter(date)
         self.return_type = return_type
         product = f"safegraph_{product}.*"
         params = {"placekeys": placekeys}
@@ -400,7 +437,7 @@ class HTTP_Client:
     }}
 }}"""
             if preview_query:
-                print(re.sub(r'\n+', '\n', __query__))   
+                self.__prettyfy(__query__)
                 return False
             query = gql(__query__)            
             result = self.client.execute(query, variable_values=params)
@@ -468,7 +505,7 @@ When querying by location & address, it's necessary to have at least the followi
     location_name + street_address + postal_code + iso_country_code
     location_name + latitude + longitude + iso_country_code
             ''')
-        self._date_setter(date)
+        self.__date_setter(date)
         self.return_type = return_type
         product = f"safegraph_{product}.*"
         params = f"""
@@ -508,7 +545,7 @@ When querying by location & address, it's necessary to have at least the followi
     }}
 }}"""
             if preview_query:
-                print(re.sub(r'\n+', '\n', __query__))   
+                self.__prettyfy(__query__)  
                 return False
             query = gql(__query__)
             result = self.client.execute(query)
@@ -571,7 +608,7 @@ When querying by location & address, it's necessary to have at least the followi
         #################################################        |```|  /\   |`````|
         self.max_results = max_results    ##################     |   | /  \  |     |
         self.return_type = return_type    ###################    |`\` /____\ |     |
-        self._date_setter(date)           #################      |  \/      \|     |
+        self.__date_setter(date)           #################      |  \/      \|     |
         #################################################        |  /\       |\____|__
                                           ############
         product = f"safegraph_{product}.*"
@@ -625,7 +662,8 @@ When querying by location & address, it's necessary to have at least the followi
     }}
 }}"""
                 if preview_query:
-                    print(re.sub(r'\n+', '\n', __query__))   
+                    # import pdb;pdb.set_trace()
+                    self.__prettyfy(__query__) 
                     return False
                 query = gql(__query__)
                 try:
