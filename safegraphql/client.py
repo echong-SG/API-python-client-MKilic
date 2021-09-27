@@ -288,6 +288,7 @@ class HTTP_Client:
         str_ = ""
         __split__ = re.sub(r'\s+', " ", __query__).split(" ")
         for s in __split__:
+            pass
             # v2
             # if s == "{":
             #     pre+=1
@@ -612,7 +613,6 @@ When querying by location & address, it's necessary to have at least the followi
         #################################################        |  /\       |\____|__
                                           ############
         product = f"safegraph_{product}.*"
-        print(product)
         params = f"""
 {(lambda x,y: f' {x}: "{y}" ' if y!=None else "")("brand", brand)}
 {(lambda x,y: f' {x}: "{y}" ' if y!=None else "")("brand_id", brand_id)}
@@ -634,6 +634,7 @@ When querying by location & address, it's necessary to have at least the followi
         chunks = self.__chunks()
         data_frame = []
         # print(f"\n\n\n\tsearch: {columns=},{date=},{return_type=}\n\n\n")
+        arr_ = []
         for chu in chunks:
             first = len(chu)
             first_run = 1 # for the first pull, pull all data the rest only weekly
@@ -666,6 +667,8 @@ When querying by location & address, it's necessary to have at least the followi
                     self.__prettyfy(__query__) 
                     return False
                 query = gql(__query__)
+                arr_.append(query)
+                continue
                 try:
                     result = self.client.execute(query)
                 except Exception as e:
@@ -684,6 +687,8 @@ When querying by location & address, it's necessary to have at least the followi
                     except TypeError:
                         pass
                 data_frame.append(dict_)
+
+        import pdb;pdb.set_trace()
 
         self.__lengthCheck__(data_frame)
         self.__adjustments(data_frame)
