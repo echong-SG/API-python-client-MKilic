@@ -1,5 +1,5 @@
 import pandas as pd
-import json
+import json, re
 from gql import gql
 from gql import Client as gql_Client
 from gql.transport.requests import RequestsHTTPTransport
@@ -353,7 +353,7 @@ class HTTP_Client:
         else:
             return df.to_dict("records")
 
-    def lookup(self, product:str, placekeys:list, columns, date='__default__', return_type="pandas"):
+    def lookup(self, product:str, placekeys:list, columns, date='__default__', preview_query:str=False, return_type:str="pandas"):
         """
             :param str product:             spesific product to pull data from either one core/geometry/weekly_patterns/monthly_patterns
             :param list placekeys:          Unique Placekey ID/IDs inside an array
@@ -393,15 +393,16 @@ class HTTP_Client:
             else:
                 dataset = dataset.replace("_DATE_BLOCK_", f'(date: "{i}" )')
             # print(dataset+"\n")
-            query = gql(
-                f"""query($placekeys: [Placekey!]) {{
-                    batch_lookup(placekeys: $placekeys) {{
-                        placekey
-                        {dataset}
-                    }}
-                }}"""
-            )
-            
+            __query__ = f"""query($placekeys: [Placekey!]) {{
+ batch_lookup(placekeys: $placekeys) {{
+    placekey
+    {dataset}
+    }}
+}}"""
+            if preview_query:
+                print(re.sub(r'\n+', '\n', __query__))   
+                return False
+            query = gql(__query__)            
             result = self.client.execute(query, variable_values=params)
             for place in result['batch_lookup']:
                 dict_ = {}
@@ -431,7 +432,8 @@ class HTTP_Client:
             postal_code:str=None,
             latitude:float=None, longitude:float=None, 
             date='__default__',
-            return_type="pandas"):
+            preview_query:str=False,
+            return_type:str="pandas"):
         """
             :param str product:             spesific product to pull data from either one core/geometry/weekly_patterns/monthly_patterns
             :param columns:                 list or str 
@@ -498,16 +500,17 @@ When querying by location & address, it's necessary to have at least the followi
             else:
                 dataset = dataset.replace("_DATE_BLOCK_", f'(date: "{i}" )')
             # print(dataset+"\n")
-            query = gql(
-                f"""query {{
-                    lookup(query: {{
-                        {params}
-                        }}) {{ 
-                        placekey 
-                        {dataset}
-                    }}
-                }}"""
-            )
+            __query__ = f"""query {{
+ lookup(query: {{{params}
+ }}) {{ 
+        placekey 
+        {dataset}
+    }}
+}}"""
+            if preview_query:
+                print(re.sub(r'\n+', '\n', __query__))   
+                return False
+            query = gql(__query__)
             result = self.client.execute(query)
             dict_ = {}
             for j in data_type:
@@ -537,6 +540,7 @@ When querying by location & address, it's necessary to have at least the followi
         location_name:str=None, street_address:str=None, city:str=None, region:str=None, postal_code:str=None, iso_country_code:str=None,
         max_results:int=20,
         after_result_number:int=0,
+        preview_query:str=False,
         return_type:str="pandas"):
         """
             :param str product:             spesific product to pull data from either one core/geometry/weekly_patterns/monthly_patterns
@@ -585,7 +589,7 @@ When querying by location & address, it's necessary to have at least the followi
 {(lambda x,y: f' {x}: "{y}" ' if y!=None else "")("region", region)}
 {(lambda x,y: f' {x}: "{y}" ' if y!=None else "")("postal_code", postal_code)}
 {(lambda x,y: f' {x}: "{y}" ' if y!=None else "")("iso_country_code", iso_country_code)}
-}}"""
+ }}"""
         if address != ' address: {\n\n\n\n\n\n\n}':
             params+=address
         after = 0
@@ -613,16 +617,17 @@ When querying by location & address, it's necessary to have at least the followi
                 else:
                     dataset = dataset.replace("_DATE_BLOCK_", f'(date: "{i}" )')
                 # print(dataset+"\n")
-                query = gql(
-                    f"""query {{
-                        search(first: {first} after: {after+after_result_number} filter: {{
-                            {params}
-                            }}) {{ 
-                            placekey 
-                            {dataset}
-                        }}
-                    }}"""
-                )
+                __query__ = f"""query {{
+ search(first: {first} after: {after+after_result_number} filter: {{{params}   
+ }}) {{ 
+        placekey 
+        {dataset}
+    }}
+}}"""
+                if preview_query:
+                    print(re.sub(r'\n+', '\n', __query__))   
+                    return False
+                query = gql(__query__)
                 try:
                     result = self.client.execute(query)
                 except Exception as e:
