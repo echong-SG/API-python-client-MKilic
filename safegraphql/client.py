@@ -439,7 +439,7 @@ class HTTP_Client:
 }}"""
             if preview_query:
                 self.__prettyfy(__query__)
-                return False
+                return
             query = gql(__query__)            
             result = self.client.execute(query, variable_values=params)
             for place in result['batch_lookup']:
@@ -547,7 +547,7 @@ When querying by location & address, it's necessary to have at least the followi
 }}"""
             if preview_query:
                 self.__prettyfy(__query__)  
-                return False
+                return
             query = gql(__query__)
             result = self.client.execute(query)
             dict_ = {}
@@ -634,7 +634,6 @@ When querying by location & address, it's necessary to have at least the followi
         chunks = self.__chunks()
         data_frame = []
         # print(f"\n\n\n\tsearch: {columns=},{date=},{return_type=}\n\n\n")
-        arr_ = []
         for chu in chunks:
             first = len(chu)
             first_run = 1 # for the first pull, pull all data the rest only weekly
@@ -663,12 +662,9 @@ When querying by location & address, it's necessary to have at least the followi
     }}
 }}"""
                 if preview_query:
-                    # import pdb;pdb.set_trace()
                     self.__prettyfy(__query__) 
-                    return False
+                    return
                 query = gql(__query__)
-                arr_.append(query)
-                continue
                 try:
                     result = self.client.execute(query)
                 except Exception as e:
@@ -687,9 +683,6 @@ When querying by location & address, it's necessary to have at least the followi
                     except TypeError:
                         pass
                 data_frame.append(dict_)
-
-        import pdb;pdb.set_trace()
-
         self.__lengthCheck__(data_frame)
         self.__adjustments(data_frame)
         self.__error_check(after_result_number)
