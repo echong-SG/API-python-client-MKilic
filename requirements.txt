@@ -40,8 +40,6 @@ requests==2.26.0
 requests-toolbelt==0.9.1
 rfc3986==1.5.0
 Rx==1.6.1
-safeGraph @ file:///C:/Users/Raq/Desktop/mirkan%20projects/upwork-graphQL/dist/safeGraph-0.1.0-py3-none-any.whl
-safegraphQL==0.3.7
 six==1.16.0
 toml==0.10.2
 tomli==1.2.1
@@ -52,3 +50,4 @@ virtualenv==20.7.2
 virtualenv-clone==0.5.6
 webencodings==0.5.1
 zipp==3.5.0
+websockets>=9,<10
