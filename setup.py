@@ -32,7 +32,7 @@ setup(
     install_requires=[
         # "graphql-core>=2.3.2",
         # "yarl>=1.6,<2.0",
-        "gql==3.0.0a7",
+        "gql==3.0.0a6",
         "pandas==1.3.2"
     ],
     setup_requires=['pytest-runner'],
