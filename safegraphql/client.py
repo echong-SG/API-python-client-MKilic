@@ -361,7 +361,11 @@ class HTTP_Client:
         else:
             return df.to_dict("records")
 
-    async def lookup(self, product:str, placekeys:list, columns, date='__default__', preview_query:str=False, return_type:str="pandas"):
+    def lookup(self, product:str, placekeys:list, columns, date='__default__', preview_query:str=False, return_type:str="pandas"):
+        loop = asyncio.get_event_loop()
+        return loop.run_until_complete(self.lookup_(product, placekeys, columns, date, preview_query, return_type))
+
+    async def lookup_(self, product:str, placekeys:list, columns, date='__default__', preview_query:str=False, return_type:str="pandas"):
         """
             :param str product:             spesific product to pull data from either one core/geometry/weekly_patterns/monthly_patterns
             :param list placekeys:          Unique Placekey ID/IDs inside an array
@@ -401,8 +405,8 @@ class HTTP_Client:
             else:
                 dataset = dataset.replace("_DATE_BLOCK_", f'(date: "{i}" )')
             # print(dataset+"\n")
-            __query__ = f"""query($placekeys: [Placekey!]) {{
- batch_lookup(placekeys: $placekeys) {{
+            __query__ = f"""query {{
+ batch_lookup(placekeys: {str(placekeys).replace("'", '"')}) {{
     placekey
     {dataset}
     }}
@@ -412,7 +416,7 @@ class HTTP_Client:
                 return
             query = gql(__query__)            
             #################################################################
-            result = await asyncio.wait_for(self.client.execute_async(query, variable_values=params), timeout=30)
+            result = await asyncio.wait_for(self.client.execute_async(query), timeout=30) # variable_values=params
             # async with gql_Client(
             #     transport=self.transport, fetch_schema_from_transport=True,
             # ) as session:
@@ -437,14 +441,19 @@ class HTTP_Client:
         else:
             raise safeGraphError(f'return_type "{return_type}" does not exist')
 
-    async def lookup_by_name(self, product:str, columns:list,
+    def lookup_by_name(self,product,columns,location_name=None,street_address=None,city=None,region=None,iso_country_code=None,postal_code=None,latitude=None,longitude=None,date='__default__',preview_query=None,return_type='pandas'):
+        loop = asyncio.get_event_loop()
+        return loop.run_until_complete(self.lookup_by_name_(product,columns,location_name,street_address,city,region,iso_country_code,postal_code,latitude,longitude,date,preview_query,return_type))
+
+    async def lookup_by_name_(self, product:str, columns:list,
             location_name:str=None, 
             street_address:str=None, 
             city:str=None, 
             region:str=None,
             iso_country_code:str=None, 
             postal_code:str=None,
-            latitude:float=None, longitude:float=None, 
+            latitude:float=None, 
+            longitude:float=None, 
             date='__default__',
             preview_query:str=False,
             return_type:str="pandas"):
@@ -553,7 +562,11 @@ When querying by location & address, it's necessary to have at least the followi
         else:
             raise safeGraphError(f'return_type "{return_type}" does not exist')
 
-    async def search(self, product, columns, date='__default__',
+    def search(self, product, columns, date='__default__',brand:str=None,brand_id:str=None,naics_code:int=None, phone_number:str=None,location_name:str=None, street_address:str=None, city:str=None, region:str=None, postal_code:str=None, iso_country_code:str=None,max_results:int=20,after_result_number:int=0,preview_query:str=False,return_type:str="pandas"):
+        loop = asyncio.get_event_loop()
+        return loop.run_until_complete(self.search_(product,columns,date,brand,brand_id,naics_code,phone_number,location_name,street_address,city,region,postal_code,iso_country_code,max_results,after_result_number,preview_query,return_type))
+
+    async def search_(self, product, columns, date='__default__',
         # params
         brand:str=None, brand_id:str=None, naics_code:int=None, phone_number:str=None,
         # address with following sub-fields
