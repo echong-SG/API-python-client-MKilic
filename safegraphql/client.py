@@ -4,7 +4,7 @@ from gql import gql
 from gql import Client as gql_Client
 from gql.transport.aiohttp import AIOHTTPTransport
 from .types import __VALUE_TYPES__, DATASET, INNER_DATASET, __PATTERNS__, WM__PATTERNS__
-from requests.exceptions import *  
+from gql.transport.exceptions import *
 from datetime import datetime, timedelta
 from time import sleep
 
@@ -94,8 +94,6 @@ class HTTP_Client:
                     lst[key] = val(lst[key])
                 except KeyError:
                     pass
-                # except TypeError:
-                #     import pdb;pdb.set_trace()
 
     def __column_check_raise(self, columns):
         dict_ = {el:0 for el in columns}
@@ -416,12 +414,23 @@ class HTTP_Client:
                 return
             query = gql(__query__)            
             #################################################################
-            result = await asyncio.wait_for(self.client.execute_async(query), timeout=30) # variable_values=params
             # async with gql_Client(
             #     transport=self.transport, fetch_schema_from_transport=True,
             # ) as session:
             #     result = await session.execute(query, variable_values=params)
             #################################################################
+            try:
+                result = await asyncio.wait_for(self.client.execute_async(query), timeout=30) # variable_values=params
+            except TransportServerError:
+                print("*** TransportServerError => self.date:",self.date)
+                self.__adjustments(data_frame)
+                if self.return_type == "pandas":
+                    return self.df
+                elif self.return_type == "list":
+                    return self.lst
+                else:
+                    raise safeGraphError(f'return_type "{return_type}" does not exist')
+
             for place in result['batch_lookup']:
                 dict_ = {}
                 for j in data_type:
@@ -535,12 +544,21 @@ When querying by location & address, it's necessary to have at least the followi
                 return
             query = gql(__query__)
             #################################################################
-            result = await asyncio.wait_for(self.client.execute_async(query), timeout=30)
             # async with gql_Client(
             #     transport=self.transport, fetch_schema_from_transport=True,
             # ) as session:
             #     result = await session.execute(query)
             #################################################################
+            try:
+                result = await asyncio.wait_for(self.client.execute_async(query), timeout=30)
+            except TransportServerError:
+                self.__adjustments(data_frame)
+                if self.return_type == "pandas":
+                    return self.df
+                elif self.return_type == "list":
+                    return self.lst
+                else:
+                    raise safeGraphError(f'return_type "{return_type}" does not exist')
             dict_ = {}
             for j in data_type:
                 try:
@@ -602,11 +620,15 @@ When querying by location & address, it's necessary to have at least the followi
         """
                                           ############
         #################################################        |```|  /\   |`````|
-        self.max_results = max_results    ##################     |   | /  \  |     |
+                                        ##################     |   | /  \  |     |
         self.return_type = return_type    ###################    |`\` /____\ |     |
         self.__date_setter(date)           #################     |  \/      \|     |
         #################################################        |  /\       |\____|__
                                           ############
+        if max_results == "all":
+            self.max_results = 1000000
+        else:
+            self.max_results = max_results
         product = f"safegraph_{product}.*"
         params = f"""
 {(lambda x,y: f' {x}: "{y}" ' if y!=None else "")("brand", brand)}
@@ -629,10 +651,10 @@ When querying by location & address, it's necessary to have at least the followi
         chunks = self.__chunks()
         data_frame = []
         # print(f"\n\n\n\tsearch: {columns=},{date=},{return_type=}\n\n\n")
+        arr = []
         for chu in chunks:
             first = len(chu)
             first_run = 1 # for the first pull, pull all data the rest only weekly
-            data_frame = []
             for i in self.date:
                 # print("\n\t "+i+"\n")
                 if first_run:
@@ -661,18 +683,36 @@ When querying by location & address, it's necessary to have at least the followi
                     return
                 query = gql(__query__)
                 try:
-                    #################################################################
                     result = await asyncio.wait_for(self.client.execute_async(query), timeout=30)
-                    # async with gql_Client(
-                    #     transport=self.transport, fetch_schema_from_transport=True,
-                    # ) as session:
-                    #     result = await session.execute(query)
-                    #################################################################
-                except Exception as e:
-                    print("\n\n\n\t*** ERROR ***\n\n\n")
-                    raise e
-                    result = {'search': []}
+                    result['search'][0]['placekey']
+                except IndexError:
+                    # end of line
                     self.errors.append(f"{after+after_result_number}-{first+after+after_result_number}")
+                    self.__lengthCheck__(data_frame)
+                    self.__adjustments(data_frame)
+                    self.__error_check(after_result_number)
+                    if self.return_type == "pandas":
+                        return self.df
+                    elif self.return_type == "list":
+                        return self.lst
+                    else:
+                        raise safeGraphError(f'return_type "{return_type}" does not exist')
+                except TransportServerError:
+                    print("*** TransportServerError")
+                    self.errors.append(f"{after+after_result_number}-{first+after+after_result_number}")
+                    self.__lengthCheck__(data_frame)
+                    self.__adjustments(data_frame)
+                    self.__error_check(after_result_number)
+                    print(self.return_type)
+                    if self.return_type == "pandas":
+                        return self.df
+                    elif self.return_type == "list":
+                        return self.lst
+                    else:
+                        raise safeGraphError(f'return_type "{return_type}" does not exist')
+                except Exception as e:
+                    print("\n\n\n\t*** ERROR ***\n\n\n", e)
+                    import pdb;pdb.set_trace()
                 output+=result['search']
                 after += first
             for out in output:

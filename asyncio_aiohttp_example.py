@@ -95,3 +95,118 @@ task = asyncio.get_event_loop().run_until_complete(example_main())
 task2 = asyncio.get_event_loop().run_until_complete(main())
 import pdb;pdb.set_trace()
 task3 = main_sync()
+
+
+
+# ASYNC EXPLORE
+# def main():
+#     import asyncio
+#     asyncio.set_event_loop_policy(asyncio.WindowsSelectorEventLoopPolicy())
+#     asyncio.run(asyncio_test());
+
+# async def asyncio_test():
+#     #START
+#     print("start for lookup")
+#     start_time = time.time()
+#     lookup = await sgql_client.lookup( 
+#         date=date,
+#         product="weekly_patterns",
+#         placekeys=placekeys,
+#         columns="*",
+#         preview_query=False)
+#     print(lookup)
+#     # END
+#     end_time = time.time()
+#     print('Total time elapsed: %.2f seconds for lookup' % (end_time - start_time));
+
+#     #START
+#     print("start for lookup_by_name")
+#     start_time = time.time()
+#     look_ = await sgql_client.lookup_by_name( 
+#         date=date,
+#         product="weekly_patterns",
+#         location_name= "Taco Bell", 
+#         street_address= "710 3rd St", 
+#         city= "San Francisco", 
+#         region= "CA", 
+#         iso_country_code= "US",
+#         return_type="pandas",
+#         columns="*",
+#         preview_query=False)
+#     print(look_)
+#     # END
+#     end_time = time.time()
+#     print('Total time elapsed: %.2f seconds for lookup_by_name' % (end_time - start_time));
+
+#     #START
+#     print("start for search")
+#     start_time = time.time()
+#     search_ = await sgql_client.search( 
+#         product="core", 
+#         columns=["location_name"], 
+#         naics_code=445120,
+#         return_type="pandas", 
+#         max_results=10,
+#         date=date,
+#     )
+
+#     print(search_)
+#     # END
+#     end_time = time.time()
+#     print('Total time elapsed: %.2f seconds for search' % (end_time - start_time));
+
+
+# def regular_test():
+#     start_time = time.time()
+#     #START
+#     look_ = sgql_client.lookup( 
+#         date=date,
+#         product="weekly_patterns",
+#         placekeys=placekeys,
+#         columns="*",
+#         preview_query=False,
+#     )
+
+#     print(look_)
+#     # END
+#     end_time = time.time()
+#     print('Total time elapsed: %.2f seconds for lookup' % (end_time - start_time))
+
+#     #START
+#     print("start for lookup_by_name")
+#     start_time = time.time()
+#     look_ = sgql_client.lookup_by_name( 
+#         date=date,
+#         product="weekly_patterns",
+#         location_name= "Taco Bell", 
+#         street_address= "710 3rd St", 
+#         city= "San Francisco", 
+#         region= "CA", 
+#         iso_country_code= "US",
+#         return_type="pandas",
+#         columns="*",
+#         preview_query=False)
+#     print(look_)
+#     # END
+#     end_time = time.time()
+#     print('Total time elapsed: %.2f seconds for lookup_by_name' % (end_time - start_time));
+
+#     #START
+#     print("start for search")
+#     start_time = time.time()
+#     search_ = sgql_client.search( 
+#         product="core", 
+#         columns=["location_name"], 
+#         naics_code=445120,
+#         return_type="pandas", 
+#         max_results=10,
+#         date=date,
+#     )
+
+#     print(search_)
+#     # END
+#     end_time = time.time()
+#     print('Total time elapsed: %.2f seconds for search' % (end_time - start_time));
+
+#main()
+#regular_test()
