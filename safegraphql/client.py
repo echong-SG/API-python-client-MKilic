@@ -7,6 +7,8 @@ from .types import __VALUE_TYPES__, DATASET, INNER_DATASET, __PATTERNS__, WM__PA
 from gql.transport.exceptions import *
 from datetime import datetime, timedelta
 from time import sleep
+import nest_asyncio
+nest_asyncio.apply()
 
 class safeGraphError(Exception):
     pass
@@ -360,7 +362,11 @@ class HTTP_Client:
             return df.to_dict("records")
 
     def lookup(self, product:str, placekeys:list, columns, date='__default__', preview_query:bool=False, return_type:str="pandas"):
-        loop = asyncio.get_event_loop()
+        loop = asyncio.new_event_loop()
+        asyncio.set_event_loop(loop)
+        if type(placekeys) == str:
+            placekeys = [placekeys]
+            # raise safeGraphError("placekeys must be inside a list not string")
         return loop.run_until_complete(self.lookup_(product, placekeys, columns, date, preview_query, return_type))
 
     async def lookup_(self, product:str, placekeys:list, columns, date='__default__', preview_query:bool=False, return_type:str="pandas"):
@@ -451,7 +457,8 @@ class HTTP_Client:
             raise safeGraphError(f'return_type "{return_type}" does not exist')
 
     def lookup_by_name(self,product,columns,location_name=None,street_address=None,city=None,region=None,iso_country_code=None,postal_code=None,latitude=None,longitude=None,date='__default__',preview_query:bool=False,return_type='pandas'):
-        loop = asyncio.get_event_loop()
+        loop = asyncio.new_event_loop()
+        asyncio.set_event_loop(loop)
         return loop.run_until_complete(self.lookup_by_name_(product,columns,location_name,street_address,city,region,iso_country_code,postal_code,latitude,longitude,date,preview_query,return_type))
 
     async def lookup_by_name_(self, product:str, columns:list,
@@ -581,7 +588,8 @@ When querying by location & address, it's necessary to have at least the followi
             raise safeGraphError(f'return_type "{return_type}" does not exist')
 
     def search(self, product, columns, date='__default__',brand:str=None,brand_id:str=None,naics_code:int=None, phone_number:str=None,location_name:str=None, street_address:str=None, city:str=None, region:str=None, postal_code:str=None, iso_country_code:str=None,max_results:int=20,after_result_number:int=0,preview_query:bool=False,return_type:str="pandas"):
-        loop = asyncio.get_event_loop()
+        loop = asyncio.new_event_loop()
+        asyncio.set_event_loop(loop)
         return loop.run_until_complete(self.search_(product,columns,date,brand,brand_id,naics_code,phone_number,location_name,street_address,city,region,postal_code,iso_country_code,max_results,after_result_number,preview_query,return_type))
 
     async def search_(self, product, columns, date='__default__',

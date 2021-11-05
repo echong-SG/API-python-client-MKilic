@@ -38,7 +38,7 @@ setup(
     #     # Make sure to include the `#egg` portion so the `install_requires` recognizes the package
     #     'git+ssh://git@github.com/graphql-python/gql.git'
     # ],
-    setup_requires=['pytest-runner'],
+    setup_requires=['pytest-runner', "wheel"],
     tests_require=['pytest==4.4.1'],
     test_suite='tests',
     platforms="any",
