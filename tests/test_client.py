@@ -194,92 +194,17 @@ def test_non_weekly_date_req():
     monthly_patterns = sgql_client.lookup(placekeys=placekeys, product="monthly_patterns", columns=["date_range_start", "date_range_end","raw_visit_counts", "raw_visitor_counts"], return_type="pandas", date=date)
     assert type(monthly_patterns) == df_type
 
-
-
-# def test_safegraph_weekly_patterns():
-#     sgql_client.date = ["2021-08-05", "2021-08-12", "2021-08-19"]
-#     sgql_client.patterns_version = "weekly"
-#     df = sgql_client.lookup(placekeys, product="core", columns=["safegraph_brand_ids", "date_range_start", "visits_by_day"], return_type="pandas") 
-#     assert type(df) == df_type
-#     df = sgql_client.lookup(placekeys, product="geometry", columns="safegraph_weekly_patterns.*", return_type="pandas")
-#     assert type(df) == df_type
-#     df = sgql_client.lookup(placekeys, product="weekly_patterns", columns="*", date="2021-01-01", patterns_version="weekly", return_type="pandas")
-#     assert type(df) == df_type
-#     columns = ['related_same_month_brand', 'visits_by_each_hour', "location_name", "longitude", "date_range_start"]
-#     try:
-#         df = sgql_client.lookup(placekeys, columns=columns, return_type="pandas")
-#     except Exception as e:
-#         assert type(e) == ValueError
-
-
-# def test_search_pagination():
-#     city = "Philadelphia"
-#     brand = "Starbucks"
-
-#     brand_search_initial = sgql_client.search(columns = ['placekey'], brand = brand, city = city, max_results = 10, after_result_number = 0)
-#     brand_search_pagination1 = sgql_client.search(columns = ['placekey'], brand = brand, city = city, max_results = 25, after_result_number = 0)
-#     brand_search_pagination2 = sgql_client.search(columns = ['placekey'], brand = brand, city = city, max_results = 25, after_result_number = 10)
-#     assert (set(brand_search_initial.placekey) == set(brand_search_pagination1.placekey).difference(brand_search_pagination2.placekey))
-
-# def test_overlap():
-#     city = "Philadelphia"
-#     brand = "Starbucks"
-
-#     brand_search_initial = sgql_client.search(columns = ['placekey'], brand = brand, city = city, max_results = 10, after_result_number = 0)
-#     brand_search_pagination1 = sgql_client.search(columns = ['placekey'], brand = brand, city = city, max_results = 10, after_result_number = 10)
-#     for i in range(len(brand_search_initial)):
-#         assert brand_search_initial.loc[i].values[0] != brand_search_pagination1.loc[i].values[0]
-
-# def test_null_cases():
-#     null_check = [
-#         "placekey",
-#         "location_name",
-#         "top_category",
-#         "sub_category",
-#         "naics_code",
-#         "latitude",
-#         "longitude",
-#         "street_address",
-#         "city",
-#         "region",
-#         "postal_code",
-#         "iso_country_code",
-#         # "tracking_closed_since",
-#         # "geometry_type",
-#         # "polygon_wkt",
-#         # "polygon_class",
-#         # "is_synthetic",
-#         # "enclosed",
-#         # "date_range_start",
-#         # "date_range_end",
-#         # "raw_visit_counts",
-#         # "raw_visitor_counts",
-#         # "visits_by_day",
-#         # "visitor_home_cbgs",
-#         # "visitor_home_aggregation",
-#         # "visitor_daytime_cbgs",
-#         # "visitor_country_of_origin",
-#         # "distance_from_home",
-#         # "median_dwell",
-#         # "bucketed_dwell_times",
-#         # "related_same_day_brand",
-#         # "related_same_month_brand",
-#         # "popularity_by_hour",
-#         # "popularity_by_day",
-#         # "device_type",
-#     ] 
-#     df = sgql_client.lookup(placekeys, columns="*", return_type="pandas")
-#     for i in null_check:
-#         assert(df[i].isnull().values.any() == False)
-#     for i in range(len(df)):
-#         # Check that the naics_code column is a string in any Pandas dataframe results.
-#         assert(type(df.loc[i]["naics_code"]) == str)
-
-# def test_save():
-#     # Read in the result of save() and make sure it matches the original dataframe.
-#     df = sgql_client.lookup(placekeys, columns="*", return_type="pandas")
-#     path = "results.csv"
-#     sgql_client.save(path)
-#     saved_df = pd.read_csv(path)
-#     # if same shape means same values
-#     assert(df.shape == saved_df.shape)
+def test_max_result(all='all'):
+    dates = [
+        '2021-08-24', 
+        '2020-08-25', 
+        '2018-08-25'
+    ]
+    max_res = sgql_client.search( product="geometry", columns="*", brand = "starbucks", brand_id = None, naics_code = None, phone_number = None, street_address = None, city = None, region = None, postal_code = None, iso_country_code = None, max_results='all', after_result_number=1000, return_type="pandas", date=dates)
+    assert type(max_res) == df_type
+    # error case
+    try:
+        max_res = sgql_client.search( product="geometry", columns="*", brand = "starbucks", brand_id = None, naics_code = None, phone_number = None, street_address = None, city = None, region = None, postal_code = None, iso_country_code = None, max_results='all', after_result_number=15000, return_type="pandas", date=dates)
+    except client.safeGraphError as e:
+        # safegraphql.client.safeGraphError: 
+        assert(e.args[0] == "Your search returned no results.")

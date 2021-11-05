@@ -1,10 +1,10 @@
 import pandas as pd
-import json, re
+import json, re, asyncio
 from gql import gql
 from gql import Client as gql_Client
-from gql.transport.requests import RequestsHTTPTransport
+from gql.transport.aiohttp import AIOHTTPTransport
 from .types import __VALUE_TYPES__, DATASET, INNER_DATASET, __PATTERNS__, WM__PATTERNS__
-from requests.exceptions import *  
+from gql.transport.exceptions import *
 from datetime import datetime, timedelta
 from time import sleep
 
@@ -18,10 +18,11 @@ class HTTP_Client:
         self.url = 'https://api.safegraph.com/v1/graphql'
         self.apikey = apikey
         self.headers = {'Content-Type': 'application/json', 'apikey': apikey}
-        self.transport = RequestsHTTPTransport(
+        self.transport = AIOHTTPTransport(
             url=self.url, 
-            verify=True, 
-            retries=max_tries,
+            # not alive for aiohttp yet
+            # verify=True, 
+            # retries=max_tries,
             headers=self.headers,
         )
         self.client = gql_Client(transport=self.transport, fetch_schema_from_transport=True)
@@ -93,8 +94,6 @@ class HTTP_Client:
                     lst[key] = val(lst[key])
                 except KeyError:
                     pass
-                # except TypeError:
-                #     import pdb;pdb.set_trace()
 
     def __column_check_raise(self, columns):
         dict_ = {el:0 for el in columns}
@@ -286,38 +285,7 @@ class HTTP_Client:
         __pick__ = False # picks the next value without additional operation; for first check
         pre = 0
         str_ = ""
-        __split__ = re.sub(r'\s+', " ", __query__).split(" ")
-        for s in __split__:
-            pass
-            # v2
-            # if s == "{":
-            #     pre+=1
-            #     str_ += s + "\n" + pre*"\t"
-            # elif s == "}":
-            #     pre-=1
-            #     str_ += s + "\n" + pre*"\t"
-            # else:
-            #     str_+=s
-
-            # v1
-            # if __pick__:
-            #     if s == "{":
-            #         pre+=1
-            #     elif s == "}":
-            #         pre-=1
-            #     str_+= " " + s + "\n" + pre*"\t"
-            #     __pick__ = False
-            # elif s == "{":
-            #     pre+=1
-            #     str_+=" " + s# + "\n" + pre*"\t"
-            # elif s == "}":
-            #     pre-=1
-            #     str_+=" " + s# + "\n" + pre*"\t"
-            # elif s.endswith(":"):
-            #     str_+=" " + s
-            #     __pick__ = True
-            # else:
-            #     str_+= "\n" + pre*"\t" + s
+        __split__ = re.sub(r'\s+', " ", __query__).split(" ");
         print(re.sub(r'\n+', '\n', __query__))
 
     def save(self, path="__default__", return_type="__default__"):
@@ -391,7 +359,11 @@ class HTTP_Client:
         else:
             return df.to_dict("records")
 
-    def lookup(self, product:str, placekeys:list, columns, date='__default__', preview_query:str=False, return_type:str="pandas"):
+    def lookup(self, product:str, placekeys:list, columns, date='__default__', preview_query:bool=False, return_type:str="pandas"):
+        loop = asyncio.get_event_loop()
+        return loop.run_until_complete(self.lookup_(product, placekeys, columns, date, preview_query, return_type))
+
+    async def lookup_(self, product:str, placekeys:list, columns, date='__default__', preview_query:bool=False, return_type:str="pandas"):
         """
             :param str product:             spesific product to pull data from either one core/geometry/weekly_patterns/monthly_patterns
             :param list placekeys:          Unique Placekey ID/IDs inside an array
@@ -431,8 +403,8 @@ class HTTP_Client:
             else:
                 dataset = dataset.replace("_DATE_BLOCK_", f'(date: "{i}" )')
             # print(dataset+"\n")
-            __query__ = f"""query($placekeys: [Placekey!]) {{
- batch_lookup(placekeys: $placekeys) {{
+            __query__ = f"""query {{
+ batch_lookup(placekeys: {str(placekeys).replace("'", '"')}) {{
     placekey
     {dataset}
     }}
@@ -441,7 +413,24 @@ class HTTP_Client:
                 self.__prettyfy(__query__)
                 return
             query = gql(__query__)            
-            result = self.client.execute(query, variable_values=params)
+            #################################################################
+            # async with gql_Client(
+            #     transport=self.transport, fetch_schema_from_transport=True,
+            # ) as session:
+            #     result = await session.execute(query, variable_values=params)
+            #################################################################
+            try:
+                result = await asyncio.wait_for(self.client.execute_async(query), timeout=30) # variable_values=params
+            except TransportServerError:
+                print("*** TransportServerError => self.date:",self.date)
+                self.__adjustments(data_frame)
+                if self.return_type == "pandas":
+                    return self.df
+                elif self.return_type == "list":
+                    return self.lst
+                else:
+                    raise safeGraphError(f'return_type "{return_type}" does not exist')
+
             for place in result['batch_lookup']:
                 dict_ = {}
                 for j in data_type:
@@ -461,16 +450,21 @@ class HTTP_Client:
         else:
             raise safeGraphError(f'return_type "{return_type}" does not exist')
 
-    def lookup_by_name(self, product:str, columns,
+    def lookup_by_name(self,product,columns,location_name=None,street_address=None,city=None,region=None,iso_country_code=None,postal_code=None,latitude=None,longitude=None,date='__default__',preview_query:bool=False,return_type='pandas'):
+        loop = asyncio.get_event_loop()
+        return loop.run_until_complete(self.lookup_by_name_(product,columns,location_name,street_address,city,region,iso_country_code,postal_code,latitude,longitude,date,preview_query,return_type))
+
+    async def lookup_by_name_(self, product:str, columns:list,
             location_name:str=None, 
             street_address:str=None, 
             city:str=None, 
             region:str=None,
             iso_country_code:str=None, 
             postal_code:str=None,
-            latitude:float=None, longitude:float=None, 
+            latitude:float=None, 
+            longitude:float=None, 
             date='__default__',
-            preview_query:str=False,
+            preview_query:bool=False,
             return_type:str="pandas"):
         """
             :param str product:             spesific product to pull data from either one core/geometry/weekly_patterns/monthly_patterns
@@ -549,7 +543,22 @@ When querying by location & address, it's necessary to have at least the followi
                 self.__prettyfy(__query__)  
                 return
             query = gql(__query__)
-            result = self.client.execute(query)
+            #################################################################
+            # async with gql_Client(
+            #     transport=self.transport, fetch_schema_from_transport=True,
+            # ) as session:
+            #     result = await session.execute(query)
+            #################################################################
+            try:
+                result = await asyncio.wait_for(self.client.execute_async(query), timeout=30)
+            except TransportServerError:
+                self.__adjustments(data_frame)
+                if self.return_type == "pandas":
+                    return self.df
+                elif self.return_type == "list":
+                    return self.lst
+                else:
+                    raise safeGraphError(f'return_type "{return_type}" does not exist')
             dict_ = {}
             for j in data_type:
                 try:
@@ -571,14 +580,18 @@ When querying by location & address, it's necessary to have at least the followi
         else:
             raise safeGraphError(f'return_type "{return_type}" does not exist')
 
-    def search(self, product, columns, date='__default__',
+    def search(self, product, columns, date='__default__',brand:str=None,brand_id:str=None,naics_code:int=None, phone_number:str=None,location_name:str=None, street_address:str=None, city:str=None, region:str=None, postal_code:str=None, iso_country_code:str=None,max_results:int=20,after_result_number:int=0,preview_query:bool=False,return_type:str="pandas"):
+        loop = asyncio.get_event_loop()
+        return loop.run_until_complete(self.search_(product,columns,date,brand,brand_id,naics_code,phone_number,location_name,street_address,city,region,postal_code,iso_country_code,max_results,after_result_number,preview_query,return_type))
+
+    async def search_(self, product, columns, date='__default__',
         # params
         brand:str=None, brand_id:str=None, naics_code:int=None, phone_number:str=None,
         # address with following sub-fields
         location_name:str=None, street_address:str=None, city:str=None, region:str=None, postal_code:str=None, iso_country_code:str=None,
         max_results:int=20,
         after_result_number:int=0,
-        preview_query:str=False,
+        preview_query:bool=False,
         return_type:str="pandas"):
         """
             :param str product:             spesific product to pull data from either one core/geometry/weekly_patterns/monthly_patterns
@@ -605,13 +618,14 @@ When querying by location & address, it's necessary to have at least the followi
             :return:                        The data of given placekey in return_type
             :rtype:                         pandas.DataFrame or dict
         """
-                                          ############
-        #################################################        |```|  /\   |`````|
-        self.max_results = max_results    ##################     |   | /  \  |     |
-        self.return_type = return_type    ###################    |`\` /____\ |     |
-        self.__date_setter(date)           #################      |  \/      \|     |
-        #################################################        |  /\       |\____|__
-                                          ############
+        ############
+        self.return_type = return_type
+        self.__date_setter(date)
+        ############
+        if max_results == "all":
+            self.max_results = 1000000
+        else:
+            self.max_results = max_results
         product = f"safegraph_{product}.*"
         params = f"""
 {(lambda x,y: f' {x}: "{y}" ' if y!=None else "")("brand", brand)}
@@ -634,10 +648,13 @@ When querying by location & address, it's necessary to have at least the followi
         chunks = self.__chunks()
         data_frame = []
         # print(f"\n\n\n\tsearch: {columns=},{date=},{return_type=}\n\n\n")
+        arr = []
+        _max_after = False
         for chu in chunks:
+            if _max_after:
+                break
             first = len(chu)
             first_run = 1 # for the first pull, pull all data the rest only weekly
-            data_frame = []
             for i in self.date:
                 # print("\n\t "+i+"\n")
                 if first_run:
@@ -666,13 +683,44 @@ When querying by location & address, it's necessary to have at least the followi
                     return
                 query = gql(__query__)
                 try:
-                    result = self.client.execute(query)
-                except Exception as e:
-                    print("\n\n\n\t*** ERROR ***\n\n\n")
-                    raise e
-                    result = {'search': []}
+                    result = await asyncio.wait_for(self.client.execute_async(query), timeout=30)
+                    result['search'][0]['placekey']
+                except IndexError:
+                    # end of line
                     self.errors.append(f"{after+after_result_number}-{first+after+after_result_number}")
-                output+=result['search']
+                    self.__lengthCheck__(data_frame)
+                    self.__adjustments(data_frame)
+                    self.__error_check(after_result_number)
+                    if self.return_type == "pandas":
+                        return self.df
+                    elif self.return_type == "list":
+                        return self.lst
+                    else:
+                        raise safeGraphError(f'return_type "{return_type}" does not exist')
+                except TransportServerError:
+                    print("*** TransportServerError")
+                    self.errors.append(f"{after+after_result_number}-{first+after+after_result_number}")
+                    self.__lengthCheck__(data_frame)
+                    self.__adjustments(data_frame)
+                    self.__error_check(after_result_number)
+                    print(self.return_type)
+                    if self.return_type == "pandas":
+                        return self.df
+                    elif self.return_type == "list":
+                        return self.lst
+                    else:
+                        raise safeGraphError(f'return_type "{return_type}" does not exist')
+                except Exception as e:
+                    print("\n\n\n\t*** ERROR ***\n\n\n", e, i)#, chu)
+                    for err in e.errors:
+                        if err["message"] == "Maximum 'after' value exceeded, use 'last_seen_placekey' to get next page. (max_offset=5000)":
+                            # {'message': "Maximum 'after' value exceeded, use 'last_seen_placekey' to get next page. (max_offset=5000)", 'path': ['search'], 'locations': [{'line': 2, 'column': 3}]}
+                            _max_after = True
+                            break
+                try:
+                    output+=result['search']
+                except UnboundLocalError:
+                    break
                 after += first
             for out in output:
                 dict_ = {}
@@ -719,4 +767,11 @@ When querying by location & address, it's necessary to have at least the followi
                 }}
             }}"""
         )
+
+    def get_patterns_supplemental(self, file:str, # home_panel_summary, normalization_stats, and visit_panel_summary
+        region:str, iso_country_code:str, date="__default__", 
+        max_hps_results:str='all', # This is only relevant when file = 'home_panel_summary'
+        after_hps_result:int=0, # This is only relevant when file = 'home_panel_summary'
+        preview_query:bool=False,):
+        pass
 
