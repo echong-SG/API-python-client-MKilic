@@ -359,11 +359,11 @@ class HTTP_Client:
         else:
             return df.to_dict("records")
 
-    def lookup(self, product:str, placekeys:list, columns, date='__default__', preview_query:str=False, return_type:str="pandas"):
+    def lookup(self, product:str, placekeys:list, columns, date='__default__', preview_query:bool=False, return_type:str="pandas"):
         loop = asyncio.get_event_loop()
         return loop.run_until_complete(self.lookup_(product, placekeys, columns, date, preview_query, return_type))
 
-    async def lookup_(self, product:str, placekeys:list, columns, date='__default__', preview_query:str=False, return_type:str="pandas"):
+    async def lookup_(self, product:str, placekeys:list, columns, date='__default__', preview_query:bool=False, return_type:str="pandas"):
         """
             :param str product:             spesific product to pull data from either one core/geometry/weekly_patterns/monthly_patterns
             :param list placekeys:          Unique Placekey ID/IDs inside an array
@@ -450,7 +450,7 @@ class HTTP_Client:
         else:
             raise safeGraphError(f'return_type "{return_type}" does not exist')
 
-    def lookup_by_name(self,product,columns,location_name=None,street_address=None,city=None,region=None,iso_country_code=None,postal_code=None,latitude=None,longitude=None,date='__default__',preview_query=None,return_type='pandas'):
+    def lookup_by_name(self,product,columns,location_name=None,street_address=None,city=None,region=None,iso_country_code=None,postal_code=None,latitude=None,longitude=None,date='__default__',preview_query:bool=False,return_type='pandas'):
         loop = asyncio.get_event_loop()
         return loop.run_until_complete(self.lookup_by_name_(product,columns,location_name,street_address,city,region,iso_country_code,postal_code,latitude,longitude,date,preview_query,return_type))
 
@@ -464,7 +464,7 @@ class HTTP_Client:
             latitude:float=None, 
             longitude:float=None, 
             date='__default__',
-            preview_query:str=False,
+            preview_query:bool=False,
             return_type:str="pandas"):
         """
             :param str product:             spesific product to pull data from either one core/geometry/weekly_patterns/monthly_patterns
@@ -580,7 +580,7 @@ When querying by location & address, it's necessary to have at least the followi
         else:
             raise safeGraphError(f'return_type "{return_type}" does not exist')
 
-    def search(self, product, columns, date='__default__',brand:str=None,brand_id:str=None,naics_code:int=None, phone_number:str=None,location_name:str=None, street_address:str=None, city:str=None, region:str=None, postal_code:str=None, iso_country_code:str=None,max_results:int=20,after_result_number:int=0,preview_query:str=False,return_type:str="pandas"):
+    def search(self, product, columns, date='__default__',brand:str=None,brand_id:str=None,naics_code:int=None, phone_number:str=None,location_name:str=None, street_address:str=None, city:str=None, region:str=None, postal_code:str=None, iso_country_code:str=None,max_results:int=20,after_result_number:int=0,preview_query:bool=False,return_type:str="pandas"):
         loop = asyncio.get_event_loop()
         return loop.run_until_complete(self.search_(product,columns,date,brand,brand_id,naics_code,phone_number,location_name,street_address,city,region,postal_code,iso_country_code,max_results,after_result_number,preview_query,return_type))
 
@@ -591,7 +591,7 @@ When querying by location & address, it's necessary to have at least the followi
         location_name:str=None, street_address:str=None, city:str=None, region:str=None, postal_code:str=None, iso_country_code:str=None,
         max_results:int=20,
         after_result_number:int=0,
-        preview_query:str=False,
+        preview_query:bool=False,
         return_type:str="pandas"):
         """
             :param str product:             spesific product to pull data from either one core/geometry/weekly_patterns/monthly_patterns
@@ -618,13 +618,10 @@ When querying by location & address, it's necessary to have at least the followi
             :return:                        The data of given placekey in return_type
             :rtype:                         pandas.DataFrame or dict
         """
-                                          ############
-        #################################################        |```|  /\   |`````|
-                                        ##################     |   | /  \  |     |
-        self.return_type = return_type    ###################    |`\` /____\ |     |
-        self.__date_setter(date)           #################     |  \/      \|     |
-        #################################################        |  /\       |\____|__
-                                          ############
+        ############
+        self.return_type = return_type
+        self.__date_setter(date)
+        ############
         if max_results == "all":
             self.max_results = 1000000
         else:
@@ -652,7 +649,10 @@ When querying by location & address, it's necessary to have at least the followi
         data_frame = []
         # print(f"\n\n\n\tsearch: {columns=},{date=},{return_type=}\n\n\n")
         arr = []
+        _max_after = False
         for chu in chunks:
+            if _max_after:
+                break
             first = len(chu)
             first_run = 1 # for the first pull, pull all data the rest only weekly
             for i in self.date:
@@ -711,9 +711,16 @@ When querying by location & address, it's necessary to have at least the followi
                     else:
                         raise safeGraphError(f'return_type "{return_type}" does not exist')
                 except Exception as e:
-                    print("\n\n\n\t*** ERROR ***\n\n\n", e)
-                    import pdb;pdb.set_trace()
-                output+=result['search']
+                    print("\n\n\n\t*** ERROR ***\n\n\n", e, i)#, chu)
+                    for err in e.errors:
+                        if err["message"] == "Maximum 'after' value exceeded, use 'last_seen_placekey' to get next page. (max_offset=5000)":
+                            # {'message': "Maximum 'after' value exceeded, use 'last_seen_placekey' to get next page. (max_offset=5000)", 'path': ['search'], 'locations': [{'line': 2, 'column': 3}]}
+                            _max_after = True
+                            break
+                try:
+                    output+=result['search']
+                except UnboundLocalError:
+                    break
                 after += first
             for out in output:
                 dict_ = {}
@@ -760,4 +767,11 @@ When querying by location & address, it's necessary to have at least the followi
                 }}
             }}"""
         )
+
+    def get_patterns_supplemental(self, file:str, # home_panel_summary, normalization_stats, and visit_panel_summary
+        region:str, iso_country_code:str, date="__default__", 
+        max_hps_results:str='all', # This is only relevant when file = 'home_panel_summary'
+        after_hps_result:int=0, # This is only relevant when file = 'home_panel_summary'
+        preview_query:bool=False,):
+        pass
 

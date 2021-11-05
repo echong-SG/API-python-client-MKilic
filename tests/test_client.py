@@ -200,6 +200,11 @@ def test_max_result(all='all'):
         '2020-08-25', 
         '2018-08-25'
     ]
-    max_res = sgql_client.search( product="geometry", columns="*", brand = "starbucks", brand_id = None, naics_code = None, phone_number = None, street_address = None, city = None, region = None, postal_code = None, iso_country_code = None, 
-        max_results='all', after_result_number=16000, return_type="pandas", date=date)
+    max_res = sgql_client.search( product="geometry", columns="*", brand = "starbucks", brand_id = None, naics_code = None, phone_number = None, street_address = None, city = None, region = None, postal_code = None, iso_country_code = None, max_results='all', after_result_number=1000, return_type="pandas", date=dates)
     assert type(max_res) == df_type
+    # error case
+    try:
+        max_res = sgql_client.search( product="geometry", columns="*", brand = "starbucks", brand_id = None, naics_code = None, phone_number = None, street_address = None, city = None, region = None, postal_code = None, iso_country_code = None, max_results='all', after_result_number=15000, return_type="pandas", date=dates)
+    except client.safeGraphError as e:
+        # safegraphql.client.safeGraphError: 
+        assert(e.args[0] == "Your search returned no results.")

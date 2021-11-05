@@ -30,11 +30,14 @@ setup(
     keywords="api graphql protocol rest relay gql client safegraph.com safegraph-api",
     packages=find_packages(include=['safegraphql*']),
     install_requires=[
-        # "graphql-core>=2.3.2",
-        # "yarl>=1.6,<2.0",
-        "gql==3.0.0a6",
-        "pandas==1.3.2"
+        "pandas==1.3.2",
+        "gql==3.0.0b0",
+        "aiohttp>=3.7.1,<3.8.0",
     ],
+    # dependency_links=[
+    #     # Make sure to include the `#egg` portion so the `install_requires` recognizes the package
+    #     'git+ssh://git@github.com/graphql-python/gql.git'
+    # ],
     setup_requires=['pytest-runner'],
     tests_require=['pytest==4.4.1'],
     test_suite='tests',
