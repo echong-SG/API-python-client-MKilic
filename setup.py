@@ -33,11 +33,8 @@ setup(
         "pandas==1.3.2",
         "gql==3.0.0b0",
         "aiohttp>=3.7.1,<3.8.0",
+        "nest-asyncio==1.5.1",
     ],
-    # dependency_links=[
-    #     # Make sure to include the `#egg` portion so the `install_requires` recognizes the package
-    #     'git+ssh://git@github.com/graphql-python/gql.git'
-    # ],
     setup_requires=['pytest-runner', "wheel"],
     tests_require=['pytest==4.4.1'],
     test_suite='tests',

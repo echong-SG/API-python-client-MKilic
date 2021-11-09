@@ -719,7 +719,7 @@ When querying by location & address, it's necessary to have at least the followi
                     else:
                         raise safeGraphError(f'return_type "{return_type}" does not exist')
                 except Exception as e:
-                    print("\n\n\n\t*** ERROR ***\n\n\n", e, i)#, chu)
+                    # print("\n\n\n\t*** ERROR ***\n\n\n", e, i)#, chu)
                     for err in e.errors:
                         if err["message"] == "Maximum 'after' value exceeded, use 'last_seen_placekey' to get next page. (max_offset=5000)":
                             # {'message': "Maximum 'after' value exceeded, use 'last_seen_placekey' to get next page. (max_offset=5000)", 'path': ['search'], 'locations': [{'line': 2, 'column': 3}]}
