@@ -6,3 +6,4 @@ exclude *.txt
 exclude *.csv
 exclude *.json
 exclude EUGENE.py
+exclude thrash
