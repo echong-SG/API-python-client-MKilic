@@ -1,5 +1,5 @@
 import pandas as pd
-import json, re, asyncio
+import json, re, asyncio, sys
 from gql import gql
 from gql import Client as gql_Client
 from gql.transport.aiohttp import AIOHTTPTransport
@@ -7,6 +7,8 @@ from .types import __VALUE_TYPES__, DATASET, INNER_DATASET, __PATTERNS__, WM__PA
 from gql.transport.exceptions import *
 from datetime import datetime, timedelta
 from time import sleep
+if sys.version_info[0] == 3 and sys.version_info[1] >= 8 and sys.platform.startswith('win'):
+    asyncio.set_event_loop_policy(asyncio.WindowsSelectorEventLoopPolicy())
 import nest_asyncio
 nest_asyncio.apply()
 
@@ -366,16 +368,19 @@ class HTTP_Client:
             return df.to_dict("records")
 
     def lookup(self, product:str, placekeys:list, columns, date='__default__', preview_query:bool=False, return_type:str="pandas"):
-        loop = asyncio.get_event_loop()
+        loop = asyncio.new_event_loop()
+        asyncio.set_event_loop(loop)
         if type(placekeys) == str:
             raise "placekeys cannot be string: list required"
-        results = loop.run_until_complete(self.lookup_(product, placekeys, columns, date, preview_query, return_type))
+        results = loop.run_until_complete(self.lookup_(product, placekeys, columns, date, preview_query, return_type, cache=True, results=[]))
         if preview_query:
             return
         arr = [self.main_runner(query) for query in results]
         results = asyncio.gather(*arr, return_exceptions=True)
         report = loop.run_until_complete(results)
-        return loop.run_until_complete(self.lookup_(product, placekeys, columns, date, preview_query, return_type, cache=False, results=report))
+        ret = loop.run_until_complete(self.lookup_(product, placekeys, columns, date, preview_query, return_type, cache=False, results=report))
+        loop.close()
+        return ret
 
     async def lookup_(self, product:str, placekeys:list, columns, date='__default__', preview_query:bool=False, return_type:str="pandas", cache=True, results=[]):
         """
@@ -450,10 +455,12 @@ class HTTP_Client:
             for place in result['batch_lookup']:
                 dict_ = {}
                 for j in data_type:
+                    print(place)
                     try:
                         dict_.update(place[j])
                         dict_['placekey'] = (place['placekey'])
-                    except TypeError:
+                    except (TypeError, KeyError):
+                        import pdb;pdb.set_trace()
                         # 'safegraph_weekly_patterns': None
                         pass
                 data_frame.append(dict_)
@@ -468,14 +475,17 @@ class HTTP_Client:
             raise safeGraphError(f'return_type "{return_type}" does not exist')
 
     def lookup_by_name(self,product,columns,location_name=None,street_address=None,city=None,region=None,iso_country_code=None,postal_code=None,latitude=None,longitude=None,date='__default__',preview_query:bool=False,return_type='pandas'):
-        loop = asyncio.get_event_loop()
-        results = loop.run_until_complete(self.lookup_by_name_(product,columns,location_name,street_address,city,region,iso_country_code,postal_code,latitude,longitude,date,preview_query,return_type))
+        loop = asyncio.new_event_loop()
+        asyncio.set_event_loop(loop)
+        results = loop.run_until_complete(self.lookup_by_name_(product,columns,location_name,street_address,city,region,iso_country_code,postal_code,latitude,longitude,date,preview_query,return_type, cache=True, results=[]))
         if preview_query:
             return
         arr = [self.main_runner(query) for query in results]
         results = asyncio.gather(*arr, return_exceptions=True)
         report = loop.run_until_complete(results)
-        return loop.run_until_complete(self.lookup_by_name_(product,columns,location_name,street_address,city,region,iso_country_code,postal_code,latitude,longitude,date,preview_query,return_type, cache=False, results=report))
+        ret = loop.run_until_complete(self.lookup_by_name_(product,columns,location_name,street_address,city,region,iso_country_code,postal_code,latitude,longitude,date,preview_query,return_type, cache=False, results=report))
+        loop.close()
+        return ret
 
     async def lookup_by_name_(self, product:str, columns:list,
             location_name:str=None, 
@@ -588,7 +598,7 @@ When querying by location & address, it's necessary to have at least the followi
             for j in data_type:
                 try:
                     dict_.update(result['lookup'][j])
-                except TypeError:
+                except (TypeError, KeyError):
                     # 'safegraph_weekly_patterns': None
                     pass
             try:
@@ -607,8 +617,9 @@ When querying by location & address, it's necessary to have at least the followi
             raise safeGraphError(f'return_type "{return_type}" does not exist')
 
     def search(self, product, columns, date='__default__',brand:str=None,brand_id:str=None,naics_code:int=None, phone_number:str=None,location_name:str=None, street_address:str=None, city:str=None, region:str=None, postal_code:str=None, iso_country_code:str=None,max_results:int=20,after_result_number:int=0,preview_query:bool=False,return_type:str="pandas"):
-        loop = asyncio.get_event_loop()
-        results = loop.run_until_complete(self.search_(product,columns,date,brand,brand_id,naics_code,phone_number,location_name,street_address,city,region,postal_code,iso_country_code,max_results,after_result_number,preview_query,return_type))
+        loop = asyncio.new_event_loop()
+        asyncio.set_event_loop(loop)
+        results = loop.run_until_complete(self.search_(product,columns,date,brand,brand_id,naics_code,phone_number,location_name,street_address,city,region,postal_code,iso_country_code,max_results,after_result_number,preview_query,return_type, cache=True, results=[]))
         if preview_query:
             return
         arr = [self.main_runner(query) for query in results]
@@ -741,7 +752,12 @@ When querying by location & address, it's necessary to have at least the followi
                     else:
                         raise safeGraphError(f'return_type "{return_type}" does not exist')
                 except Exception as e:
-                    # print("\n\n\n\t*** ERROR ***\n\n\n", e, i)#, chu)
+                    try:
+                        if result.errors[0]['message'].startswith("Maximum 'after' value exceeded"):
+                            _max_after = True
+                            break
+                    except:
+                        pass
                     for err in e.errors:
                         if err["message"] == "Maximum 'after' value exceeded, use 'last_seen_placekey' to get next page. (max_offset=5000)":
                             # {'message': "Maximum 'after' value exceeded, use 'last_seen_placekey' to get next page. (max_offset=5000)", 'path': ['search'], 'locations': [{'line': 2, 'column': 3}]}
@@ -758,7 +774,7 @@ When querying by location & address, it's necessary to have at least the followi
                     try:
                         dict_.update(out[j])
                         dict_['placekey'] = (out['placekey'])
-                    except TypeError:
+                    except (TypeError, KeyError):
                         pass
                 data_frame.append(dict_)
         if cache:
